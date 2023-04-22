@@ -53,10 +53,10 @@ type Recipe struct {
 // Represents a generic `component`, used in cooklang to define
 // ingredients, cookware and timers.
 type component struct {
-	Name    string
-	Qty     string
-    QtyVal  float64
-	Unit    string
+	Name   string
+	Qty    string
+	QtyVal float64
+	Unit   string
 }
 
 // Build an `Ingredient` from a `component`

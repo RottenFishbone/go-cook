@@ -1,4 +1,4 @@
-module RottenFishbone/cooklang
+module git.sr.ht/~rottenfishbone/cooklang-go
 
 go 1.20
 

@@ -46,8 +46,8 @@ func buildCookY(ast *y.AST) y.Parser {
 	cr := y.AtomExact("\r", "CR")
 
 	// Tokens
-    specifierRegex := `[~@#]`   // I hate this but idk how else to lookahead
-    specifier := y.TokenExact(specifierRegex, "SPEC")
+	specifierRegex := `[~@#]` // I hate this but idk how else to lookahead
+	specifier := y.TokenExact(specifierRegex, "SPEC")
 	whitespace := y.TokenExact(`[^\S\r\n]`, "WHITESPACE")
 	punctuation := y.TokenExact(
 		`[!@#$%^&*()+\-/|'"\\;:<=>?@\[\]^_~{}.,`+"`"+`]`,
@@ -82,32 +82,34 @@ func buildCookY(ast *y.AST) y.Parser {
 	optAmountField := ast.Maybe("", nil, amountField)
 	owComponent := ast.And("one_word_component", nil, word, optAmountField)
 	mwComponentText := ast.ManyUntil("words", nil, char, nil, ocurl)
-	mwComponent := ast.And("multiword_component", 
-        func(name string, s y.Scanner, node y.Queryable) y.Queryable {
-            // Lookahead to prevent a `specifier` within `words`
-            words := node.GetChildren()[1].GetValue()
-            match, _ := regexp.MatchString(`(.*`+specifierRegex+`.)`, words)
-            if match { return nil }
-            return node
-        },
-        word, mwComponentText, amountField)
+	mwComponent := ast.And("multiword_component",
+		func(name string, s y.Scanner, node y.Queryable) y.Queryable {
+			// Lookahead to prevent a `specifier` within `words`
+			words := node.GetChildren()[1].GetValue()
+			match, _ := regexp.MatchString(`(.*`+specifierRegex+`.)`, words)
+			if match {
+				return nil
+			}
+			return node
+		},
+		word, mwComponentText, amountField)
 
 	//-------------
 	// Ingredients
 	//-------------
-    ingredientTypes := ast.OrdChoice("", nil, mwComponent, owComponent)
+	ingredientTypes := ast.OrdChoice("", nil, mwComponent, owComponent)
 	ingredient := ast.And("ingredient", nil, at, ingredientTypes)
 
 	//-------------
 	// Cookware
 	//-------------
-    cookwareTypes := ast.OrdChoice("", nil, mwComponent, owComponent)
+	cookwareTypes := ast.OrdChoice("", nil, mwComponent, owComponent)
 	cookware := ast.And("cookware", nil, hash, cookwareTypes)
 
 	//-------------
 	// Timers
 	//-------------
-    timerTypes := ast.OrdChoice("", nil, mwComponent, owComponent, amountField)
+	timerTypes := ast.OrdChoice("", nil, mwComponent, owComponent, amountField)
 	timer := ast.And("timer", nil, tilde, timerTypes)
 	//------------
 	// Metadata
@@ -137,35 +139,39 @@ func stripComments(data *[]byte) []byte {
 }
 
 // Attempt to parse a quantity fraction string into a float representation.
-// Additionally, parses decimals/whole values. e.g. "1.5", "5" 
+// Additionally, parses decimals/whole values. e.g. "1.5", "5"
 // -Inf is returned on failure
 func tryParseFraction(qty string) float64 {
-    if qty == "" { return math.Inf(-1) }
+	if qty == "" {
+		return math.Inf(-1)
+	}
 
-    // Match non-negative, non-leading 0 numbers (and "0.X" or ".X")
-    numMatch, _ := regexp.MatchString(
-        `^((0?\.[0-9]+)|([1-9][0-9]*(\.?[0-9]+)?))$`, qty)
-    if numMatch {
-        val, err := strconv.ParseFloat(qty, 64)
-        if err != nil {
-            panic("Failed to parse number string into float during quantity parsing")
-        }
-    
-        return val
-    }
+	// Match non-negative, non-leading 0 numbers (and "0.X" or ".X")
+	numMatch, _ := regexp.MatchString(
+		`^((0?\.[0-9]+)|([1-9][0-9]*(\.?[0-9]+)?))$`, qty)
+	if numMatch {
+		val, err := strconv.ParseFloat(qty, 64)
+		if err != nil {
+			panic("Failed to parse number string into float during quantity parsing")
+		}
 
-    // Match "a/b" where a and b are numbers without leading 0
-    r := regexp.MustCompile(`^([1-9][0-9]*)\s?\/\s?([1-9][0-9]*)$`)
-    matches := r.FindAllStringSubmatch(qty, -1)
+		return val
+	}
 
-    if matches == nil { return math.Inf(-1) }
+	// Match "a/b" where a and b are numbers without leading 0
+	r := regexp.MustCompile(`^([1-9][0-9]*)\s?\/\s?([1-9][0-9]*)$`)
+	matches := r.FindAllStringSubmatch(qty, -1)
 
-    a, aErr := strconv.ParseFloat(matches[0][1], 64)
-    b, bErr := strconv.ParseFloat(matches[0][2], 64)
-    if aErr!=nil || bErr!=nil {
-        panic("Failed to parse value into float during quantity fraction parsing.")
-    }
-    return a/b
+	if matches == nil {
+		return math.Inf(-1)
+	}
+
+	a, aErr := strconv.ParseFloat(matches[0][1], 64)
+	b, bErr := strconv.ParseFloat(matches[0][2], 64)
+	if aErr != nil || bErr != nil {
+		panic("Failed to parse value into float during quantity fraction parsing.")
+	}
+	return a / b
 }
 
 // Parses an "amount" node into `(qty, qtyVal, unit)`.
@@ -176,20 +182,20 @@ func parseAmountNode(node y.Queryable) (string, float64, string) {
 	if node.GetName() != "missing" {
 		quantityNode := node.GetChildren()[1]
 		if quantityNode.GetName() != "missing" {
-            switch quantityNode.GetName() {
-            case "quantity_with_unit":
-                qtyChildren := quantityNode.GetChildren()
-                qty = strings.TrimSpace(qtyChildren[0].GetValue())
+			switch quantityNode.GetName() {
+			case "quantity_with_unit":
+				qtyChildren := quantityNode.GetChildren()
+				qty = strings.TrimSpace(qtyChildren[0].GetValue())
 				unit = strings.TrimSpace(qtyChildren[2].GetValue())
-            case "quantity":
-                qty = strings.TrimSpace(quantityNode.GetValue())
-            default:
-                panic(`Unhandled node within "amount" node.`)
-            }
+			case "quantity":
+				qty = strings.TrimSpace(quantityNode.GetValue())
+			default:
+				panic(`Unhandled node within "amount" node.`)
+			}
 		}
 	}
 
-    qtyVal := tryParseFraction(qty)
+	qtyVal := tryParseFraction(qty)
 
 	return qty, qtyVal, unit
 }
@@ -272,7 +278,9 @@ func ParseRecipe(name string, data *[]byte) Recipe {
 	}
 
 	// Don't parse empty recipe
-	if len(*data) == 0 { return r }
+	if len(*data) == 0 {
+		return r
+	}
 
 	// Strip comments before parsing
 	stripped := stripComments(data)
@@ -281,8 +289,10 @@ func ParseRecipe(name string, data *[]byte) Recipe {
 	// Parse into AST
 	ast := y.NewAST("recipe", 1024)
 	parser := buildCookY(ast)
-    root, _ := ast.Parsewith(parser, s)
-    if root == nil { return r }
+	root, _ := ast.Parsewith(parser, s)
+	if root == nil {
+		return r
+	}
 
 	// Collect and iterate over each important node to build recipe
 	ch := make(chan y.Queryable, 1024)
@@ -323,7 +333,6 @@ func ParseRecipe(name string, data *[]byte) Recipe {
 			panic("Unhandled node returned from query.")
 		}
 	}
-
 
 	return r
 }
