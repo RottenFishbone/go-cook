@@ -3,7 +3,6 @@ package recipe
 import (
 	"fmt"
 	"math"
-	"os"
 	"reflect"
 	"testing"
 )
@@ -66,8 +65,15 @@ Enjoy with @ketchup, or mix in @mayonnaise{equal parts} for fancy sauce.`
 }
 
 func ExampleParseRecipe() {
-	data, _ := os.ReadFile("../../testdata/test1.cook")
-
+	recipeText :=
+		`Preheat #deep fryer{} to 190°C.
+Slice @potatoes{3} into 1/4" strips.
+Optionally, blanch in boiling @water{2%cups}.
+Drop into deep fryer for ~{7%mins}.
+Remove from fryer and sprinkle @pink salt{} 
+Enjoy with @ketchup, or mix in @mayonnaise{equal parts} for fancy sauce.`
+    
+    data := []byte(recipeText)
 	recipe := ParseRecipe("Fries", &data)
 	fmt.Println(recipe.Ingredients)
 	// Output: [{potatoes 3 3 } {water 2 2 cups} {pink salt  -Inf } {ketchup  -Inf } {mayonnaise equal parts -Inf }]
