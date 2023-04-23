@@ -1,4 +1,4 @@
-package recipe
+package parser
 
 // Chunks are the building blocks of recipe steps.
 // They are a union of Text, Ingredient, Timer and Cookware.

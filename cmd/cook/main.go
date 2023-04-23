@@ -1,13 +1,13 @@
 package main
 
 import (
-	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/recipe"
+	cook "git.sr.ht/~rottenfishbone/cooklang-go/parser"
 	"fmt"
 )
 
 func main() {
 
-	r := recipe.ParseRecipeString("Test Recipe",
+	r := cook.ParseRecipeString("Test Recipe",
 		`>> Author: Jayden
 >> servings: 2
 

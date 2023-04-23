@@ -1,6 +1,6 @@
 #!/bin/bash
 
-testedDirs=( pkg/recipe/ )
+testedDirs=( parser/ )
 dir=$(dirname ${BASH_SOURCE})
 
 for d in ${testedDirs[@]} 
