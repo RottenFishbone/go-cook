@@ -1,6 +1,6 @@
 #!/bin/bash
 
-testedDirs=( parser/ )
+testedDirs=( . )
 dir=$(dirname ${BASH_SOURCE})
 
 for d in ${testedDirs[@]} 
