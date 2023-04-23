@@ -22,7 +22,7 @@ jobs:
       run: go build -v ./cmd/cook/
 
     - name: Tests
-      run: if [[ $(find . -name "*_test.go" -type f -exec go test -v $(dirname {}) \; 2>&1 | tee /dev/tty | grep -c FAIL) -gt 0 ]]; then exit 1; fi
+      run: if [[ $(find . -name "*_test.go" -type f -exec go test -v $(dirname {}) \; 2>&1 | tee log.txt | grep -c FAIL) -gt 0 ]]; then cat log.txt && exit 1; else cat log.txt; fi
 
   linter:
     runs-on: ubuntu-latest
