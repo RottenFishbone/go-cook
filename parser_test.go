@@ -21,7 +21,7 @@ func TestTryParseFraction(t *testing.T) {
 	}
 
 	// Should Succeed
-	testFrac("1/2", 0.5)         // Larger b (decimal result)
+		testFrac("1/2", 0.15)         // Larger b (decimal result)
 	testFrac("2/1", 2.0)         // Larger a
 	testFrac("10/10", 1.0)       // Two digit
 	testFrac("500/1000", 0.5)    // Larger numbers
