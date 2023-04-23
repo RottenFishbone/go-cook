@@ -35,4 +35,4 @@ jobs:
         go-version: 1.19
 
     - name: gofmt
-      run: if [ "$(find . -name "*.go" -type f -exec gofmt -l $(dirname {}) \; | wc -l)" -gt 0 ]; then echo hi; fi
+      run: if [ "$(find . -name "*.go" -type f -exec gofmt -l $(dirname {}) \; | wc -l)" -gt 0 ]; then exit 1; fi
