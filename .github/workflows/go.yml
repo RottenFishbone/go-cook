@@ -21,5 +21,19 @@ jobs:
     - name: Build
       run: go build -v ./cmd/cook/
 
-    - name: Test
-      run: ./test.sh
+    - name: Tests
+      run: find $(dirname ${BASH_SOURCE}) -name "*_test.go" -type f -exec go test -v $(dirname {}) \;
+
+      
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: gofmt
+      run: find $(dirname ${BASH_SOURCE}) -name "*.go" -type f -exec go fmt -l -v $(dirname {}) \;
