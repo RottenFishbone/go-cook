@@ -3,47 +3,60 @@ package config
 // TODO Platform independent configs
 
 import (
-	"github.com/BurntSushi/toml"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 )
 
-type Config struct {
-	Recipe   RecipeConfig   `toml:"recipe"`
-	Shopping ShoppingConfig `toml:"shopping"`
-}
+type (
+    config struct {
+        Recipe      recipeConfig    `toml:"recipe"`
+        Shopping    shoppingConfig  `toml:"shopping"`
+        Units       string          `toml:"units"`
+    }
 
-type RecipeConfig struct {
-	Dir   string `toml:"dir"`
-	Units string `toml:"units"`
-}
+    recipeConfig struct {
+        Dir     string `toml:"dir"`
+    }
 
-type ShoppingConfig struct {
-	Dir string `toml:"dir"`
-}
+    shoppingConfig struct {
+        Dir     string `toml:"dir"`
+    }
+)
 
 // Loads a `cooklang-go` config file and returns the parsed `Config` struct.
 //
 // Leave path blank to use default location.
 // NOTE: This only works with Unix based OS atm
-func LoadConfig(path string) (Config, bool) {
+func LoadConfig(path string) bool {
 	// Find default path if needed
 	if path == "" {
-		path = findConfigPath()
+		path = DefaultConfigPath()
 	}
 
 	// Ensure the target file actually exists
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return Config{}, false
+		return false
 	}
 
-	var cfg Config
+	var cfg config
 	_, err := toml.DecodeFile(path, &cfg)
 	if err != nil {
 		panic(err)
 	}
+    
+    configToVars(&cfg)
 
-	return cfg, true
+	return true
+}
+
+// Loads config from environment vars instead of a config file
+func LoadConfigEnv() {
+    for k := range Vars {
+        v, _ := os.LookupEnv(k)
+        Vars[k] = v
+    }
 }
 
 // Creates a new config file, using the default template, using `path`.
@@ -53,9 +66,9 @@ func LoadConfig(path string) (Config, bool) {
 // will be used.
 //
 // If the recipe and shopping dirs don't already exist, they will be created.
-func ConfigInit(path string, recipes string, shopping string) Config {
+func ConfigInit(path string, recipes string, shopping string) {
 	if path == "" {
-		path = findConfigPath()
+		path = DefaultConfigPath()
 	}
 
 	// Create new file if it doesn't already exist
@@ -64,13 +77,14 @@ func ConfigInit(path string, recipes string, shopping string) Config {
 		if err != nil {
 			panic("Failed to create config directory at: " + filepath.Dir(path))
 		}
-	}
-
+	} else {
+        // Forbid accidental overwrites
+        os.Stderr.WriteString("Config already exists at: " + path + ".. Exiting.\n")
+        os.Exit(1)
+    }
+    
 	// Try to create the file
 	file, err := os.Create(path)
-	if os.IsExist(err) {
-		panic("Config already exists at: " + path)
-	}
 	if err != nil {
 		panic(err)
 	}
@@ -78,30 +92,29 @@ func ConfigInit(path string, recipes string, shopping string) Config {
 
 	// Populate recipes/shopping if needed
 	if recipes == "" {
-		recipes = findRecipesPath()
+		recipes = DefaultRecipesPath()
 	}
 	if shopping == "" {
-		shopping = findShoppingPath()
+		shopping = DefaultShoppingPath()
 	}
 
-	// Push them to default config
-	cfg := default_config
+	// Push them to default config (built from default vars)
+    cfg := varsToConfig()
 	cfg.Recipe.Dir = recipes
 	cfg.Shopping.Dir = shopping
+    
+    // Load the generated config back into Vars for use during execution
+    configToVars(&cfg)
 
 	// Encode into config file
 	err = toml.NewEncoder(file).Encode(cfg)
 	if err != nil {
 		panic(err)
 	}
-
-	//TODO Ensure the recipe/shopping dir exist and spawn otherwise
-
-	return cfg
 }
 
 // Returns the default config filepath
-func findConfigPath() string {
+func DefaultConfigPath() string {
 	var path string
 
 	// Try env var first
@@ -123,7 +136,7 @@ func findConfigPath() string {
 }
 
 // Returns the default recipes directory path
-func findRecipesPath() string {
+func DefaultRecipesPath() string {
 	var path string
 
 	// Use XDG standards
@@ -139,7 +152,7 @@ func findRecipesPath() string {
 }
 
 // Returns the default shopping directory path
-func findShoppingPath() string {
+func DefaultShoppingPath() string {
 	var path string
 
 	// Use XDG standards

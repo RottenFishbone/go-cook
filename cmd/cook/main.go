@@ -1,16 +1,9 @@
 package main
 
 import (
-	"fmt"
-
-	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/config"
+	"git.sr.ht/~rottenfishbone/cooklang-go/cmd/cook/cmd"
 )
 
 func main() {
-	cfg, success := config.LoadConfig("")
-	if !success {
-		cfg = config.ConfigInit("", "", "")
-	}
-
-	fmt.Printf("cfg: %v\n", cfg)
+	cmd.Execute()
 }
