@@ -9,6 +9,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// Internal representations for configs, used to (de)serialize to toml
 type (
 	config struct {
 		Recipe   recipeConfig   `toml:"recipe"`
@@ -28,7 +29,7 @@ type (
 // Loads a `cooklang-go` config file and returns the parsed `Config` struct.
 //
 // Leave path blank to use default location.
-// NOTE: This only works with Unix based OS atm
+// NOTE: Defaults only work with Unix based OS atm
 func LoadConfig(path string) bool {
 	// Find default path if needed
 	if path == "" {
