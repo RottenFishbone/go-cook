@@ -116,15 +116,14 @@ func ConfigInit(path string, recipes string, shopping string) {
 
 // Returns the default config filepath
 func DefaultConfigPath() string {
-	var path string
-
 	// Try env var first
 	cookConfig, cookCfgExists := os.LookupEnv("COOK_CONFIG")
 	if cookCfgExists {
-		path = cookConfig
+		return cookConfig
 	}
 
 	// Fallback XDG standards
+	var path string
 	xdgConfig, xdgCfgExists := os.LookupEnv("XDG_CONFIG_HOME")
 	if xdgCfgExists {
 		path = filepath.Join(xdgConfig, "cook", "config.toml")
