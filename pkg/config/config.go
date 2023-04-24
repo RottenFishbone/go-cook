@@ -10,19 +10,19 @@ import (
 )
 
 type (
-    config struct {
-        Recipe      recipeConfig    `toml:"recipe"`
-        Shopping    shoppingConfig  `toml:"shopping"`
-        Units       string          `toml:"units"`
-    }
+	config struct {
+		Recipe   recipeConfig   `toml:"recipe"`
+		Shopping shoppingConfig `toml:"shopping"`
+		Units    string         `toml:"units"`
+	}
 
-    recipeConfig struct {
-        Dir     string `toml:"dir"`
-    }
+	recipeConfig struct {
+		Dir string `toml:"dir"`
+	}
 
-    shoppingConfig struct {
-        Dir     string `toml:"dir"`
-    }
+	shoppingConfig struct {
+		Dir string `toml:"dir"`
+	}
 )
 
 // Loads a `cooklang-go` config file and returns the parsed `Config` struct.
@@ -45,18 +45,18 @@ func LoadConfig(path string) bool {
 	if err != nil {
 		panic(err)
 	}
-    
-    configToVars(&cfg)
+
+	configToVars(&cfg)
 
 	return true
 }
 
 // Loads config from environment vars instead of a config file
 func LoadConfigEnv() {
-    for k := range Vars {
-        v, _ := os.LookupEnv(k)
-        Vars[k] = v
-    }
+	for k := range Vars {
+		v, _ := os.LookupEnv(k)
+		Vars[k] = v
+	}
 }
 
 // Creates a new config file, using the default template, using `path`.
@@ -78,11 +78,11 @@ func ConfigInit(path string, recipes string, shopping string) {
 			panic("Failed to create config directory at: " + filepath.Dir(path))
 		}
 	} else {
-        // Forbid accidental overwrites
-        os.Stderr.WriteString("Config already exists at: " + path + ".. Exiting.\n")
-        os.Exit(1)
-    }
-    
+		// Forbid accidental overwrites
+		os.Stderr.WriteString("Config already exists at: " + path + ".. Exiting.\n")
+		os.Exit(1)
+	}
+
 	// Try to create the file
 	file, err := os.Create(path)
 	if err != nil {
@@ -99,12 +99,12 @@ func ConfigInit(path string, recipes string, shopping string) {
 	}
 
 	// Push them to default config (built from default vars)
-    cfg := varsToConfig()
+	cfg := varsToConfig()
 	cfg.Recipe.Dir = recipes
 	cfg.Shopping.Dir = shopping
-    
-    // Load the generated config back into Vars for use during execution
-    configToVars(&cfg)
+
+	// Load the generated config back into Vars for use during execution
+	configToVars(&cfg)
 
 	// Encode into config file
 	err = toml.NewEncoder(file).Encode(cfg)

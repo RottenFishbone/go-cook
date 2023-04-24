@@ -19,7 +19,7 @@ func varsToConfig() config {
 }
 
 func configToVars(cfg *config) {
-    Vars["RECIPE_DIR"] = cfg.Recipe.Dir
-    Vars["SHOPPING_DIR"]= cfg.Shopping.Dir
-    Vars["UNITS"] = cfg.Units
+	Vars["RECIPE_DIR"] = cfg.Recipe.Dir
+	Vars["SHOPPING_DIR"] = cfg.Shopping.Dir
+	Vars["UNITS"] = cfg.Units
 }
