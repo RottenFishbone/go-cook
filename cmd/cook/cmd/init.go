@@ -6,14 +6,20 @@ import (
 	"path/filepath"
 
 	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/config"
+	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/seed"
 	"github.com/spf13/cobra"
+)
+
+var (
+	// A flag to determine if example recipes should be created.
+	seedFlag bool
 )
 
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Creates the default config file.",
 	Long: `Creates a config file in $XDG_CONFIG_HOME, or at the passed location
-
+    
 A directory of where to store data such as recipes can optionally be passed as a second argument 
 which will be added to the created config automatically.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -45,11 +51,37 @@ which will be added to the created config automatically.`,
 			panic(err)
 		}
 
-		fmt.Printf("Creating config at: %v\n", path)
-		config.ConfigInit(path, recipesPath, shoppingPath)
+		created := config.ConfigInit(path, recipesPath, shoppingPath)
+		if !created && !seedFlag {
+			os.Stderr.WriteString("Config already exists...aborting.\n")
+			os.Exit(1)
+		} else if created {
+			fmt.Printf("Created config at: %v\n", path)
+		}
+
+		// Populate config so we can figure out where recipes go
+		if !config.LoadConfig(path) {
+			os.Stderr.WriteString(
+				"Could not open config file. Ensure the relevant permissions are set..\n")
+			os.Exit(1)
+		}
+
+		if seedFlag {
+			// Seed into the recipes folder
+			recipesPath = config.Get(config.KeyRecipeDir)
+			fmt.Printf("Seeded recipes into: %v\n", recipesPath)
+			seed.SeedToDir(recipesPath)
+		}
 	},
 }
 
 func init() {
+	initCmd.Flags().BoolVarP(&seedFlag, "seed", "s", false,
+		"Seeds the recipe directiory with a couple example (will not overwrite config)")
+
 	rootCmd.AddCommand(initCmd)
+}
+
+func spawnDataDirs() {
+
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/common"
 	"github.com/BurntSushi/toml"
 )
 
@@ -26,6 +27,20 @@ type (
 	}
 )
 
+func IsLoaded() bool {
+	return loaded
+}
+
+// Returns config variable based on key.
+//
+// Will panic if unloaded configs are accessed.
+func Get(key string) string {
+	if !IsLoaded() {
+		panic("Attempted to access unloaded config.")
+	}
+	return vars[key]
+}
+
 // Loads a `cooklang-go` config file and returns the parsed `Config` struct.
 //
 // Leave path blank to use default location.
@@ -37,7 +52,7 @@ func LoadConfig(path string) bool {
 	}
 
 	// Ensure the target file actually exists
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if !common.FileExists(path) {
 		return false
 	}
 
@@ -48,16 +63,19 @@ func LoadConfig(path string) bool {
 	}
 
 	configToVars(&cfg)
+	loaded = true
 
 	return true
 }
 
 // Loads config from environment vars instead of a config file
 func LoadConfigEnv() {
-	for k := range Vars {
-		v, _ := os.LookupEnv(k)
-		Vars[k] = v
+	for k := range vars {
+		v, _ := os.LookupEnv("COOK_" + k)
+		vars[k] = v
 	}
+
+	loaded = true
 }
 
 // Creates a new config file, using the default template, using `path`.
@@ -67,21 +85,20 @@ func LoadConfigEnv() {
 // will be used.
 //
 // If the recipe and shopping dirs don't already exist, they will be created.
-func ConfigInit(path string, recipes string, shopping string) {
+func ConfigInit(path string, recipes string, shopping string) bool {
 	if path == "" {
 		path = DefaultConfigPath()
 	}
 
 	// Create new file if it doesn't already exist
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if !common.FileExists(path) {
 		err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
 		if err != nil {
 			panic("Failed to create config directory at: " + filepath.Dir(path))
 		}
 	} else {
 		// Forbid accidental overwrites
-		os.Stderr.WriteString("Config already exists at: " + path + ".. Exiting.\n")
-		os.Exit(1)
+		return false
 	}
 
 	// Try to create the file
@@ -106,12 +123,15 @@ func ConfigInit(path string, recipes string, shopping string) {
 
 	// Load the generated config back into Vars for use during execution
 	configToVars(&cfg)
+	loaded = true
 
 	// Encode into config file
 	err = toml.NewEncoder(file).Encode(cfg)
 	if err != nil {
 		panic(err)
 	}
+
+	return true
 }
 
 // Returns the default config filepath

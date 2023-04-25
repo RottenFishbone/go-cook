@@ -2,7 +2,10 @@ package cooklang
 
 // Chunks are the building blocks of recipe steps.
 // They are a union of Text, Ingredient, Timer and Cookware.
-type Chunk interface{ isChunk() }
+type Chunk interface {
+	isChunk()
+	ToString() string
+}
 
 func (Text) isChunk()       {}
 func (Ingredient) isChunk() {}
@@ -14,6 +17,29 @@ type Text string
 type Ingredient component
 type Cookware component
 type Timer component
+
+// Unwraps Text chunk into a string
+func (x Text) ToString() string {
+	return string(x)
+}
+
+// Converts an ingredient to a string, with its name followed by qty and units if they
+// exist.
+func (x Ingredient) ToString() string {
+	return x.Name
+}
+
+// Converts cookware to a string, with its name followed by qty and units if they
+// exist.
+func (x Cookware) ToString() string {
+	return x.Name
+}
+
+// Converts a timer to a string, with its name followed by qty and units if they
+// exist.
+func (x Timer) ToString() string {
+	return x.Name
+}
 
 // A Step is one part of a recipe, consisting of a set of chunks which can be
 // read in order to build a human readable recipe.

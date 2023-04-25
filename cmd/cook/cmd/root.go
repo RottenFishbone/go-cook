@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/config"
@@ -17,12 +16,11 @@ var (
 		Use:   "cook",
 		Short: "cook provides a CLI to interact with recipes written in `cooklang`",
 		Long:  "",
+
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
 				cmd.Help()
 				os.Exit(0)
-			} else {
-				initConfig()
 			}
 		},
 	}
@@ -37,25 +35,32 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "Path to config toml. (defaults to $COOK_HOME then $XDG_DATA_HOME/cook/config.toml)")
-	rootCmd.PersistentFlags().BoolVarP(&cfgUseEnv, "env", "", false, "Use environment variables instead of a config file.")
+	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "",
+		"Path to config toml. (defaults to $COOK_HOME then $XDG_DATA_HOME/cook/config.toml)")
+	rootCmd.PersistentFlags().BoolVarP(&cfgUseEnv, "env", "", false,
+		"Use environment variables instead of a config file.")
+	rootCmd.MarkFlagsMutuallyExclusive("env", "config")
 }
 
 func initConfig() {
 	if cfgUseEnv {
-		// Prevent conflicting config arguments
-		if cfgPath != "" {
-			os.Stderr.WriteString("Cannot use --config and --env flag simultaneously")
-			os.Exit(1)
-		}
-
 		config.LoadConfigEnv()
 		return
 	}
 
+	// Load config file into config.Vars
 	if !config.LoadConfig(cfgPath) {
 		if cfgPath == "" {
-			fmt.Println("No config file found, run `cook init` to create one automatically.")
+			_, err := os.Stat(config.DefaultConfigPath())
+			// Test for its existence so we can figure out why it didn't open
+			if os.IsNotExist(err) {
+				os.Stderr.WriteString(
+					"No config file found, run `cook init` to create one automatically.")
+			} else if os.IsPermission(err) {
+				os.Stderr.WriteString(
+					"Could not open config file. Ensure relevant permissions are set.\n")
+			}
+			os.Exit(1)
 		}
 	}
 }

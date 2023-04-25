@@ -1,37 +1,40 @@
 package config
 
-// Constant key for reliably accessing `config.Vars`
+// Constant key for reliably accessing `config.Get`
 const (
-	RecipeDir   string = "RECIPE_DIR"
-	ShoppingDir        = "SHOPPING_DIR"
-	Units              = "UNITS"
+	KeyRecipeDir   string = "RECIPE_DIR"
+	KeyShoppingDir        = "SHOPPING_DIR"
+	KeyUnits              = "UNITS"
 )
 
 // Globally accessible dictionary of config values.
-var Vars = map[string]string{
-	RecipeDir:   "",
-	ShoppingDir: "",
-	Units:       "",
+var vars = map[string]string{
+	KeyRecipeDir:   "",
+	KeyShoppingDir: "",
+	KeyUnits:       "",
 }
+
+// If the config has been loaded from file or environment vars
+var loaded = false
 
 // Convert the config dictionary into a `config` struct.
 // This is used exclusively for (de)serialization.
 func varsToConfig() config {
 	return config{
 		Recipe: recipeConfig{
-			Dir: Vars[RecipeDir],
+			Dir: vars[KeyRecipeDir],
 		},
 		Shopping: shoppingConfig{
-			Dir: Vars[ShoppingDir],
+			Dir: vars[KeyShoppingDir],
 		},
-		Units: Vars[Units],
+		Units: vars[KeyUnits],
 	}
 }
 
 // Loads a `config` struct into the config dictionary.
 // All values will be overwritten.
 func configToVars(cfg *config) {
-	Vars[RecipeDir] = cfg.Recipe.Dir
-	Vars[ShoppingDir] = cfg.Shopping.Dir
-	Vars[Units] = cfg.Units
+	vars[KeyRecipeDir] = cfg.Recipe.Dir
+	vars[KeyShoppingDir] = cfg.Shopping.Dir
+	vars[KeyUnits] = cfg.Units
 }
