@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"git.sr.ht/~rottenfishbone/cooklang-go"
+	"git.sr.ht/~rottenfishbone/go-cook"
 )
 
 func FilepathToName(path string) string {

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/common"
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/common"
 	"github.com/BurntSushi/toml"
 )
 

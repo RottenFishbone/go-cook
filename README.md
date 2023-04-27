@@ -1,4 +1,4 @@
-## cooklang-go &nbsp;&nbsp; [![Go Report Card](https://goreportcard.com/badge/git.sr.ht/~rottenfishbone/cooklang-go)](https://goreportcard.com/report/git.sr.ht/~rottenfishbone/cooklang-go)
+## go-cook &nbsp;&nbsp; [![Go Report Card](https://goreportcard.com/badge/git.sr.ht/~rottenfishbone/go-cook)](https://goreportcard.com/report/git.sr.ht/~rottenfishbone/go-cook)
 This project aims to be a reimplementation, and eventually extension, of the original [CooklangCLI](https://github.com/cooklang/CookCLI), written in Go.  
 
 The root package provides the parser and the requisite types under the package name `cooklang`. 
@@ -17,7 +17,7 @@ At present, the parser works and passes all canonical tests listed [here](https:
     - [ ] `cook server`
 
 ##### todo
- - Extensions (Images, Shopping List, Parse comments)
+ - Language Extensions (Images, Shopping List, Parse comments)
  - Shopping List Parser 
 
 --------

@@ -1,2 +1,12 @@
-Session.vim
+Session.vim 
 
+.DS_Store
+node_modules
+web/build
+web/.svelte-kit
+web/package
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

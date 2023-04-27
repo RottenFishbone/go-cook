@@ -1,7 +1,7 @@
 package main
 
 import (
-	"git.sr.ht/~rottenfishbone/cooklang-go/cmd/cook/cmd"
+	"git.sr.ht/~rottenfishbone/go-cook/cmd/cook/cmd"
 )
 
 func main() {

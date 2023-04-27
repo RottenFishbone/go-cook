@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"git.sr.ht/~rottenfishbone/cooklang-go"
-	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/common"
-	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/config"
-	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/recipe"
+	"git.sr.ht/~rottenfishbone/go-cook"
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/common"
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/config"
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/recipe"
 	"github.com/spf13/cobra"
 )
 

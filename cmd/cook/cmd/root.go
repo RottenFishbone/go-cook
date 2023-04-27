@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/config"
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/config"
 	"github.com/spf13/cobra"
 )
 

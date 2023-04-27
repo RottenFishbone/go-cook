@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/config"
-	"git.sr.ht/~rottenfishbone/cooklang-go/pkg/seed"
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/config"
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/seed"
 	"github.com/spf13/cobra"
 )
 
@@ -77,7 +77,7 @@ which will be added to the created config automatically.`,
 
 func init() {
 	initCmd.Flags().BoolVarP(&seedFlag, "seed", "s", false,
-		"Seeds the recipe directiory with a couple example (will not overwrite config)")
+		"Seeds the recipe directory with a few sample files (will not overwrite config)")
 
 	rootCmd.AddCommand(initCmd)
 }
