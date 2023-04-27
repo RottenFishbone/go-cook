@@ -33,7 +33,7 @@ for it.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		recipeDir := config.Get(config.KeyRecipeDir)
 		for _, path := range args {
-			var r cooklang.Recipe
+			var r cook.Recipe
 
 			// If not a local file, check recipes dir
 			if !common.FileExists(path) {
@@ -58,7 +58,7 @@ for it.`,
 			if err != nil {
 				panic(err)
 			}
-			r = cooklang.ParseRecipe(recipe.FilepathToName(path), &data)
+			r = cook.ParseRecipe(recipe.FilepathToName(path), &data)
 			recipe.PrettyPrint(&r)
 		}
 	},

@@ -27,7 +27,7 @@ func FilepathToName(path string) string {
 }
 
 // Prints a recipe to stdout using nice formatting.
-func PrettyPrint(recipe *cooklang.Recipe) {
+func PrettyPrint(recipe *cook.Recipe) {
 	fmt.Printf("========= %v ========\n", recipe.Name)
 	wr := new(tabwriter.Writer)
 	if len(recipe.Metadata) > 0 {
