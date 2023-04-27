@@ -8,17 +8,17 @@ import (
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Hosts a local webserver to view/manage recipes.",
-	Long: ``,
+	Long:  ``,
 
 	PreRun: func(cmd *cobra.Command, args []string) {
 		initConfig()
 	},
 
 	Run: func(cmd *cobra.Command, args []string) {
-        server.Start(6969)
+		server.Start(6969)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(serverCmd)
-} 
+}
