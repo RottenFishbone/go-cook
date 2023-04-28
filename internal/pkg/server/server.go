@@ -2,15 +2,14 @@ package server
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
-	"io/fs"
-	
+
 	"git.sr.ht/~rottenfishbone/go-cook/web"
 )
 
-var handlerFuncs = map[string]func(http.ResponseWriter, *http.Request){
-}
+var handlerFuncs = map[string]func(http.ResponseWriter, *http.Request){}
 
 func Start(port int) {
 	if port < 0 || port > 65535 {
@@ -20,7 +19,7 @@ func Start(port int) {
 	for k, v := range handlerFuncs {
 		http.HandleFunc(k, v)
 	}
-	
+
 	// Fetch the web server files and serve 'dist' as root
 	fs, _ := fs.Sub(web.WebDist, "dist")
 	http.Handle("/", http.FileServer(http.FS(fs)))
