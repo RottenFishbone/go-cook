@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"git.sr.ht/~rottenfishbone/go-cook/pkg/server"
+	"git.sr.ht/~rottenfishbone/go-cook/internal/pkg/server"
 	"github.com/spf13/cobra"
 )
 
