@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"git.sr.ht/~rottenfishbone/go-cook/web"
+	"git.sr.ht/~rottenfishbone/go-cook/internal/web"
 )
 
 var handlerFuncs = map[string]func(http.ResponseWriter, *http.Request){}

@@ -110,7 +110,7 @@ func TestBasicDirection(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("Add a bit of chilli")}},
 	}
 
@@ -124,7 +124,7 @@ func TestComments(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{},
 	}
 	assertRecipe(t, &got, &want)
@@ -147,7 +147,7 @@ func TestCommentsWithIngredients(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{thyme},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{thyme}},
 	}
 
@@ -161,7 +161,7 @@ func TestDirectionWithDegrees(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("Heat oven up to 200°C")}},
 	}
 
@@ -175,7 +175,7 @@ func TestDirectionWithNumbers(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("Heat 5L of water")}},
 	}
 
@@ -207,7 +207,7 @@ func TestDirectionWithIngredient(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{chili, ginger, milk},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps: []Step{
 			{Text("Add "), chili, Text(", "),
 				ginger, Text(" and "), milk, Text(".")},
@@ -232,7 +232,7 @@ func TestEquipmentMultipleWords(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{pan},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("Fry in "), pan}},
 	}
 
@@ -254,7 +254,7 @@ func TestEquipmentMultipleWordsWithLeadingNumber(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{pan},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("Fry in "), pan}},
 	}
 
@@ -276,7 +276,7 @@ func TestEquipmentOneWord(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{pan},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("Fry in "), pan, Text(" for some time")}},
 	}
 
@@ -298,7 +298,7 @@ func TestEquipmentQuantity(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{pan},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{pan}},
 	}
 
@@ -320,7 +320,7 @@ func TestEquipmentQuantityOneWord(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{pan},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{pan}},
 	}
 
@@ -342,7 +342,7 @@ func TestEquipmentQuantityMultipleWords(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{pan},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{pan}},
 	}
 
@@ -364,7 +364,7 @@ func TestFractions(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{milk},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{milk}},
 	}
 
@@ -379,7 +379,7 @@ func TestFractionsInDirections(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("knife cut about every 1/2 inches")}},
 	}
 
@@ -401,7 +401,7 @@ func TestFractionsLike(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{milk},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{milk}},
 	}
 
@@ -423,7 +423,7 @@ func TestFractionsWithSpaces(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{milk},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{milk}},
 	}
 
@@ -445,7 +445,7 @@ func TestIngredientMultipleWords(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{chilli},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{chilli}},
 	}
 
@@ -467,7 +467,7 @@ func TestIngredientMultipleWordsNoAmount(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{chilli},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{chilli}},
 	}
 
@@ -496,7 +496,7 @@ func TestMultipleIngredientWithoutStopper(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{chilli, garlic},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{chilli, Text(" cut into pieces and "), garlic}},
 	}
 
@@ -518,7 +518,7 @@ func TestIngredientMultipleWordsWithLeadingNumber(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{dressing},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("Top with "), dressing}},
 	}
 
@@ -540,7 +540,7 @@ func TestIngredientWithEmoji(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{salt},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("Add some "), salt}},
 	}
 
@@ -562,7 +562,7 @@ func TestIngredientExplicitUnitsWithSpaces(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{chilli},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{chilli}},
 	}
 
@@ -584,7 +584,7 @@ func TestIngredientImplicitUnits(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{chilli},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{chilli}},
 	}
 
@@ -606,7 +606,7 @@ func TestIngredientNoUnits(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{chilli},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{chilli}},
 	}
 
@@ -628,7 +628,7 @@ func TestIngredientNoUnitsNotOnlyString(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{peppers},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{peppers}},
 	}
 
@@ -650,7 +650,7 @@ func TestIngredientWithNumbers(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{tipo},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{tipo}},
 	}
 
@@ -672,7 +672,7 @@ func TestIngredientWithoutStopper(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{chilli},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{chilli, Text(" cut into pieces")}},
 	}
 
@@ -687,7 +687,7 @@ func TestMetadata(t *testing.T) {
 		Metadata:    []Metadata{{Tag: "sourced", Body: "babooshka"}},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{},
 	}
 
@@ -702,7 +702,7 @@ func TestMetadataBreak(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("hello >> sourced: babooshka")}},
 	}
 
@@ -717,7 +717,7 @@ func TestMetadataMultiwordKey(t *testing.T) {
 		Metadata:    []Metadata{{Tag: "cooking time", Body: "30 mins"}},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{},
 	}
 
@@ -732,7 +732,7 @@ func TestMetadataMultiwordKeyWithSpaces(t *testing.T) {
 		Metadata:    []Metadata{{Tag: "cooking time", Body: "30 mins"}},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{},
 	}
 
@@ -747,7 +747,7 @@ func TestMetadataServings(t *testing.T) {
 		Metadata:    []Metadata{{Tag: "servings", Body: "1|2|3"}},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{},
 	}
 
@@ -767,7 +767,7 @@ func TestMetadataMultipleLines(t *testing.T) {
 		},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{},
 	}
 
@@ -785,7 +785,7 @@ Add a bit of hummus`)
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps: []Step{
 			{Text("Add a bit of chilli")},
 			{Text("Add a bit of hummus")},
@@ -810,7 +810,7 @@ func TestQuantityAsText(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{thyme},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{thyme}},
 	}
 
@@ -832,7 +832,7 @@ func TestQuantityDigitalString(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{water},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{water}},
 	}
 
@@ -847,7 +847,7 @@ func TestSlashInText(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{},
+		Timers:       []Timer{},
 		Steps:       []Step{{Text("Preheat the oven to 200℃/Fan 180°C")}},
 	}
 
@@ -869,7 +869,7 @@ func TestTimerDecimal(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{timer},
+		Timers:       []Timer{timer},
 		Steps:       []Step{{Text("Fry for "), timer}},
 	}
 
@@ -891,7 +891,7 @@ func TestTimerFractional(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{timer},
+		Timers:       []Timer{timer},
 		Steps:       []Step{{Text("Fry for "), timer}},
 	}
 
@@ -913,7 +913,7 @@ func TestTimerInteger(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{timer},
+		Timers:       []Timer{timer},
 		Steps:       []Step{{Text("Fry for "), timer}},
 	}
 
@@ -935,7 +935,7 @@ func TestTimerWithName(t *testing.T) {
 		Metadata:    []Metadata{},
 		Ingredients: []Ingredient{},
 		Cookware:    []Cookware{},
-		Timer:       []Timer{timer},
+		Timers:       []Timer{timer},
 		Steps:       []Step{{Text("Fry for "), timer}},
 	}
 

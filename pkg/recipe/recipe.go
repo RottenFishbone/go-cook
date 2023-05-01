@@ -1,6 +1,7 @@
 package recipe
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"git.sr.ht/~rottenfishbone/go-cook"
 )
 
+// Name a recipe using its filepath
 func FilepathToName(path string) string {
 	path = filepath.Base(path)
 	ext := filepath.Ext(path)
@@ -24,6 +26,41 @@ func FilepathToName(path string) string {
 	}, path)
 
 	return path
+}
+
+// Decodes a recipe JSON string into a Recipe struct
+//
+// Returns empty recipe on failure (prints to stderr)
+func DecodeFromJson(obj string) cook.Recipe {
+	var r cook.Recipe
+	err := json.Unmarshal([]byte(obj), &r)
+	if err != nil {
+		errstr := fmt.Sprintf("Failed to decode JSON recope:\n%v\n", obj)
+		os.Stderr.WriteString(errstr)
+		return cook.Recipe{
+			Name:        "",
+			Metadata:    []cook.Metadata{},
+			Ingredients: []cook.Ingredient{},
+			Cookware:    []cook.Cookware{},
+			Timers:      []cook.Timer{},
+			Steps:       []cook.Step{},
+		}
+	}
+
+	return r
+}
+
+// Encodes a recipe into a JSON string
+//
+// Exits on encoding failure
+func EncodeToJson(r *cook.Recipe) string {
+	bytes, err := json.Marshal(*r)
+	if err != nil {
+		errstr := fmt.Sprintf("Failed to JSON encode recipe:\n%v\n", *r)
+		os.Stderr.WriteString(errstr)
+		os.Exit(1)
+	}
+	return string(bytes)
 }
 
 // Prints a recipe to stdout using nice formatting.
@@ -85,5 +122,4 @@ func PrettyPrint(recipe *cook.Recipe) {
 		}
 		fmt.Println("")
 	}
-
 }

@@ -273,7 +273,7 @@ func ParseRecipe(name string, data *[]byte) Recipe {
 		Metadata:    make([]Metadata, 0, 32),
 		Ingredients: make([]Ingredient, 0, 32),
 		Cookware:    make([]Cookware, 0, 8),
-		Timer:       make([]Timer, 0, 8),
+		Timers:      make([]Timer, 0, 8),
 		Steps:       make([]Step, 0, 16),
 	}
 
@@ -321,7 +321,7 @@ func ParseRecipe(name string, data *[]byte) Recipe {
 				case Cookware:
 					r.Cookware = append(r.Cookware, chunk)
 				case Timer:
-					r.Timer = append(r.Timer, chunk)
+					r.Timers = append(r.Timers, chunk)
 				case Text: // valid, but no op
 				default:
 					panic("Unhandled Chunk type.")
