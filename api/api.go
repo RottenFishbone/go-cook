@@ -2,8 +2,7 @@ package api
 
 // TODO cache recipes in memory
 
-import (
-)
+import ()
 
 // Returns a JSON list containing the `n`th page of recipes, using the
 // provided page size.
@@ -21,4 +20,3 @@ func GetAllRecipes() string {
 func GetRecipesMatching(regexPattern string) string {
 	return ""
 }
-

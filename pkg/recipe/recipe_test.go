@@ -10,7 +10,7 @@ import (
 // --------------------------------------------------------------
 // Unit Tests
 // --------------------------------------------------------------
-func TestEncodeToJsonUninitdRecipe(t *testing.T){
+func TestEncodeToJsonUninitdRecipe(t *testing.T) {
 	r := cook.Recipe{}
 	got := EncodeToJson(&r)
 	want := `{"name":"","metadata":null,"ingredients":null,"cookware":null,"timers":null,"steps":null}`
@@ -19,7 +19,7 @@ func TestEncodeToJsonUninitdRecipe(t *testing.T){
 	}
 }
 
-func TestEncodeToJsonEmptyRecipe(t *testing.T){
+func TestEncodeToJsonEmptyRecipe(t *testing.T) {
 	r := cook.Recipe{
 		Name:        "",
 		Metadata:    []cook.Metadata{},
@@ -35,10 +35,10 @@ func TestEncodeToJsonEmptyRecipe(t *testing.T){
 	}
 }
 
-func TestEncodeToJsonRecipeMetadata(t *testing.T){
+func TestEncodeToJsonRecipeMetadata(t *testing.T) {
 	r := cook.Recipe{
-		Name:        "",
-		Metadata:    []cook.Metadata{{
+		Name: "",
+		Metadata: []cook.Metadata{{
 			Tag:  "Author",
 			Body: "Jayden",
 		}},
@@ -54,19 +54,19 @@ func TestEncodeToJsonRecipeMetadata(t *testing.T){
 	}
 }
 
-func TestEncodeToJsonRecipeIngredient(t *testing.T){
+func TestEncodeToJsonRecipeIngredient(t *testing.T) {
 	r := cook.Recipe{
-		Name:        "",
-		Metadata:    []cook.Metadata{},
+		Name:     "",
+		Metadata: []cook.Metadata{},
 		Ingredients: []cook.Ingredient{{
 			Name:   "tomato",
 			Qty:    "1/2",
 			QtyVal: 0.5,
 			Unit:   "",
 		}},
-		Cookware:    []cook.Cookware{},
-		Timers:      []cook.Timer{},
-		Steps:       []cook.Step{},
+		Cookware: []cook.Cookware{},
+		Timers:   []cook.Timer{},
+		Steps:    []cook.Step{},
 	}
 	got := EncodeToJson(&r)
 	want := `{"name":"","metadata":[],"ingredients":[{"name":"tomato","qty":"1/2","qtyVal":0.5,"unit":""}],"cookware":[],"timers":[],"steps":[]}`
@@ -94,10 +94,10 @@ func ExampleEncodeToJson() {
 		Ingredients: []cook.Ingredient{tomato},
 		Cookware:    []cook.Cookware{},
 		Timers:      []cook.Timer{},
-		Steps:       []cook.Step{
+		Steps: []cook.Step{
 			{cook.Text("Slice whole "),
-			tomato,
-			cook.Text(" and eat fresh.")},
+				tomato,
+				cook.Text(" and eat fresh.")},
 		},
 	}
 
@@ -110,7 +110,7 @@ func ExampleEncodeToJson() {
 func ExampleDecodeFromJson() {
 	json := `{"name":"Test Recipe","metadata":[{"tag":"Author","body":"Jayden"}],"ingredients":[{"name":"tomato","qty":"1","qtyVal":1,"unit":""}],"cookware":[],"timers":[],"steps":[[{"tag":"text","data":"Slice whole "},{"tag":"ingredient","data":{"name":"tomato","qty":"1","qtyVal":1,"unit":""}},{"tag":"text","data":" and eat fresh."}]]}`
 
-	r:=DecodeFromJson(json)
+	r := DecodeFromJson(json)
 	fmt.Println(r)
 	// Output: {Test Recipe [{Author Jayden}] [{tomato 1 1 }] [] [] [[Slice whole  {tomato 1 1 }  and eat fresh.]]}
 }

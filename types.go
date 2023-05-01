@@ -17,7 +17,7 @@ func (Cookware) isChunk()   {}
 func (Timer) isChunk()      {}
 
 // Text is a string wrapper (to allow for safe inclusion to Chunk interface)
-type Text string	
+type Text string
 type Ingredient component
 type Cookware component
 type Timer component
@@ -52,17 +52,17 @@ func (x Timer) ToString() string {
 // (such as text formatting).
 type Step []Chunk
 
-// Custom JSON encoding wraps each of `Step`'s chunk into a struct that stores the 
+// Custom JSON encoding wraps each of `Step`'s chunk into a struct that stores the
 // type to allow for unambiguous decoding.
 //
 // e.g. an ingredient chunk will be wrapped as encoded as:
 // `{'tag': 'ingredient', 'data': {...}}`
-func (s *Step) MarshalJSON() ([]byte, error){
+func (s *Step) MarshalJSON() ([]byte, error) {
 	type wrapper struct {
-		Tag 	string	`json:"tag"`	// The underlying type of a Chunk
-		Data 	Chunk	`json:"data"`	// The actual chunk data
+		Tag  string `json:"tag"`  // The underlying type of a Chunk
+		Data Chunk  `json:"data"` // The actual chunk data
 	}
-	
+
 	// Construct a new list of wrapped chunks
 	wrappedSteps := make([]wrapper, len(*s))
 	for i, chunk := range *s {
@@ -84,15 +84,15 @@ func (s *Step) MarshalJSON() ([]byte, error){
 			panic("Tried to encode unhandled Chunk type")
 		}
 		var _ = fixYourDamnCompilerWarnings
-		
+
 		wrapped := wrapper{
-			Tag: 	tag,
-			Data:   chunk,
+			Tag:  tag,
+			Data: chunk,
 		}
 
 		wrappedSteps[i] = wrapped
 	}
-	
+
 	// Encode the wrapped chunks as JSON
 	return json.Marshal(wrappedSteps)
 }
@@ -106,7 +106,7 @@ func (s *Step) UnmarshalJSON(data []byte) error {
 	}
 	// Build an output list to populate
 	step := make(Step, len(out))
-	
+
 	// Iterate over each wrapper chunk in the JSON
 	for i, chunkMapRaw := range out {
 		// chunkWrap is of form: {'tag':..., 'data':...}
@@ -133,13 +133,12 @@ func (s *Step) UnmarshalJSON(data []byte) error {
 			default:
 				panic("Encountered unhandled tag on JSON decode of `step`")
 			}
-		}	
+		}
 	}
 	// Push array to *s and return that there was no error
 	*s = step
 	return nil
 }
-
 
 // Metadata is arbitrary information about a recipe, consisting
 // simply of a tag and a body.
@@ -149,8 +148,8 @@ func (s *Step) UnmarshalJSON(data []byte) error {
 //
 // It may be prudent to further parse metadata before displaying.
 type Metadata struct {
-	Tag  string		`json:"tag"`
-	Body string		`json:"body"`
+	Tag  string `json:"tag"`
+	Body string `json:"body"`
 }
 
 // Recipes consist primarily of Metadata and Steps. Steps are stored sequentially
@@ -161,21 +160,21 @@ type Metadata struct {
 //
 // Recipes can be easily parsed from a string using the function `ParseRecipe`.
 type Recipe struct {
-	Name        string			`json:"name"`
-	Metadata    []Metadata		`json:"metadata"`
-	Ingredients []Ingredient	`json:"ingredients"`
-	Cookware    []Cookware		`json:"cookware"`
-	Timers      []Timer			`json:"timers"`
-	Steps       []Step			`json:"steps"`
+	Name        string       `json:"name"`
+	Metadata    []Metadata   `json:"metadata"`
+	Ingredients []Ingredient `json:"ingredients"`
+	Cookware    []Cookware   `json:"cookware"`
+	Timers      []Timer      `json:"timers"`
+	Steps       []Step       `json:"steps"`
 }
 
 // Represents a generic `component`, used in cooklang to define
 // ingredients, cookware and timers.
 type component struct {
-	Name   string	`json:"name"`
-	Qty    string	`json:"qty"`
-	QtyVal float64	`json:"qtyVal"`
-	Unit   string	`json:"unit"`
+	Name   string  `json:"name"`
+	Qty    string  `json:"qty"`
+	QtyVal float64 `json:"qtyVal"`
+	Unit   string  `json:"unit"`
 }
 
 // Build an `Ingredient` from a `component`
