@@ -1,7 +1,6 @@
 package cook
 
 import (
-	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -9,6 +8,7 @@ import (
 	y "github.com/prataprc/goparsec"
 )
 
+// TODO Error reporting
 // TODO Implement "servings" system a la cooklang roadmap
 // TODO Create extended lang? or an extension system of sorts.
 // TODO Parse image tags, This may be the responsibility of the renderer, though
@@ -140,10 +140,10 @@ func stripComments(data *[]byte) []byte {
 
 // Attempt to parse a quantity fraction string into a float representation.
 // Additionally, parses decimals/whole values. e.g. "1.5", "5"
-// -Inf is returned on failure
+// cook.NoQty is returned on failure
 func tryParseFraction(qty string) float64 {
 	if qty == "" {
-		return math.Inf(-1)
+		return NoQty
 	}
 
 	// Match non-negative, non-leading 0 numbers (and "0.X" or ".X")
@@ -163,7 +163,7 @@ func tryParseFraction(qty string) float64 {
 	matches := r.FindAllStringSubmatch(qty, -1)
 
 	if matches == nil {
-		return math.Inf(-1)
+		return NoQty
 	}
 
 	a, aErr := strconv.ParseFloat(matches[0][1], 64)

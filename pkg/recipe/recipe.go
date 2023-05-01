@@ -1,16 +1,33 @@
 package recipe
 
 import (
-	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
 
 	"git.sr.ht/~rottenfishbone/go-cook"
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/common"
 )
+
+// Reads a recipe file and parses it into a Recipe struct.
+//
+// nil returned on failure
+func LoadFromFile(path string) *cook.Recipe {
+	if !common.FileExists(path) {
+		return nil
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		errstr := fmt.Sprintf("Error: %v\n", err.Error())
+		os.Stderr.WriteString(errstr)
+	}
+
+	r := cook.ParseRecipe(FilepathToName(path), &data)
+	return &r
+}
 
 // Name a recipe using its filepath
 func FilepathToName(path string) string {
@@ -26,41 +43,6 @@ func FilepathToName(path string) string {
 	}, path)
 
 	return path
-}
-
-// Decodes a recipe JSON string into a Recipe struct
-//
-// Returns empty recipe on failure (prints to stderr)
-func DecodeFromJson(obj string) cook.Recipe {
-	var r cook.Recipe
-	err := json.Unmarshal([]byte(obj), &r)
-	if err != nil {
-		errstr := fmt.Sprintf("Failed to decode JSON recope:\n%v\n", obj)
-		os.Stderr.WriteString(errstr)
-		return cook.Recipe{
-			Name:        "",
-			Metadata:    []cook.Metadata{},
-			Ingredients: []cook.Ingredient{},
-			Cookware:    []cook.Cookware{},
-			Timers:      []cook.Timer{},
-			Steps:       []cook.Step{},
-		}
-	}
-
-	return r
-}
-
-// Encodes a recipe into a JSON string
-//
-// Exits on encoding failure
-func EncodeToJson(r *cook.Recipe) string {
-	bytes, err := json.Marshal(*r)
-	if err != nil {
-		errstr := fmt.Sprintf("Failed to JSON encode recipe:\n%v\n", *r)
-		os.Stderr.WriteString(errstr)
-		os.Exit(1)
-	}
-	return string(bytes)
 }
 
 // Prints a recipe to stdout using nice formatting.
@@ -80,7 +62,7 @@ func PrettyPrint(recipe *cook.Recipe) {
 		wr.Init(os.Stdout, 0, 4, 4, ' ', tabwriter.TabIndent)
 		for _, ingr := range recipe.Ingredients {
 			var qtyStr string
-			if ingr.QtyVal != math.Inf(-1) {
+			if ingr.QtyVal != cook.NoQty {
 				qtyStr = fmt.Sprintf("%v %v", ingr.QtyVal, ingr.Unit)
 			} else {
 				qtyStr = ingr.Qty + " " + ingr.Unit
@@ -97,7 +79,7 @@ func PrettyPrint(recipe *cook.Recipe) {
 		wr.Init(os.Stdout, 0, 4, 4, ' ', tabwriter.TabIndent)
 		for _, cookware := range recipe.Cookware {
 			var qtyStr string
-			if cookware.QtyVal != math.Inf(-1) {
+			if cookware.QtyVal != cook.NoQty {
 				qtyStr = fmt.Sprintf("%v %v", cookware.QtyVal, cookware.Unit)
 			} else {
 				qtyStr = cookware.Qty + " " + cookware.Unit

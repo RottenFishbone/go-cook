@@ -33,16 +33,15 @@ func TestTryParseFraction(t *testing.T) {
 	testFrac("840", 840.0)       // Positive Large Integers
 
 	// Should Fail
-	inf := math.Inf(-1)
-	testFrac("0/1", inf)   // a Only 0
-	testFrac("1/0", inf)   // b Only 0
-	testFrac("01/10", inf) // a Leading 0
-	testFrac("10/01", inf) // b Leading 0
-	testFrac("01.0", inf)  // Decimal leading with 0
-	testFrac("1.0/1", inf) // Decimal with fraction
-	testFrac("-1", inf)    // Negative int
-	testFrac("-1.0", inf)  // Negative decimal
-	testFrac("inf", inf)   // Float keyword
+	testFrac("0/1", NoQty)   // a Only 0
+	testFrac("1/0", NoQty)   // b Only 0
+	testFrac("01/10", NoQty) // a Leading 0
+	testFrac("10/01", NoQty) // b Leading 0
+	testFrac("01.0", NoQty)  // Decimal leading with 0
+	testFrac("1.0/1", NoQty) // Decimal with fraction
+	testFrac("-1", NoQty)    // Negative int
+	testFrac("-1.0", NoQty)  // Negative decimal
+	testFrac("NoQty", NoQty) // Float keyword
 }
 
 // --------------------------------------------------------------
@@ -60,7 +59,7 @@ Enjoy with @ketchup, or mix in @mayonnaise{equal parts} for fancy sauce.`
 
 	recipe := ParseRecipeString("Fries", recipeText)
 	fmt.Println(recipe.Ingredients)
-	// Output: [{potatoes 3 3 } {water 2 2 cups} {pink salt  -Inf } {ketchup  -Inf } {mayonnaise equal parts -Inf }]
+	// Output: [{potatoes 3 3 } {water 2 2 cups} {pink salt  0 } {ketchup  0 } {mayonnaise equal parts 0 }]
 
 }
 
@@ -76,7 +75,7 @@ Enjoy with @ketchup, or mix in @mayonnaise{equal parts} for fancy sauce.`
 	data := []byte(recipeText)
 	recipe := ParseRecipe("Fries", &data)
 	fmt.Println(recipe.Ingredients)
-	// Output: [{potatoes 3 3 } {water 2 2 cups} {pink salt  -Inf } {ketchup  -Inf } {mayonnaise equal parts -Inf }]
+	// Output: [{potatoes 3 3 } {water 2 2 cups} {pink salt  0 } {ketchup  0 } {mayonnaise equal parts 0 }]
 
 }
 
@@ -223,7 +222,7 @@ func TestEquipmentMultipleWords(t *testing.T) {
 	pan := Cookware{
 		Name:   "frying pan",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -245,7 +244,7 @@ func TestEquipmentMultipleWordsWithLeadingNumber(t *testing.T) {
 	pan := Cookware{
 		Name:   "7-inch nonstick frying pan",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -267,7 +266,7 @@ func TestEquipmentOneWord(t *testing.T) {
 	pan := Cookware{
 		Name:   "pan",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -311,7 +310,7 @@ func TestEquipmentQuantityOneWord(t *testing.T) {
 	pan := Cookware{
 		Name:   "frying pan",
 		Qty:    "three",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -333,7 +332,7 @@ func TestEquipmentQuantityMultipleWords(t *testing.T) {
 	pan := Cookware{
 		Name:   "frying pan",
 		Qty:    "two small",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -392,7 +391,7 @@ func TestFractionsLike(t *testing.T) {
 	milk := Ingredient{
 		Name:   "milk",
 		Qty:    "01/2",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "cup",
 	}
 
@@ -458,7 +457,7 @@ func TestIngredientMultipleWordsNoAmount(t *testing.T) {
 	chilli := Ingredient{
 		Name:   "hot chilli",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -480,14 +479,14 @@ func TestMultipleIngredientWithoutStopper(t *testing.T) {
 	chilli := Ingredient{
 		Name:   "chilli",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
 	garlic := Ingredient{
 		Name:   "garlic",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -509,7 +508,7 @@ func TestIngredientMultipleWordsWithLeadingNumber(t *testing.T) {
 	dressing := Ingredient{
 		Name:   "1000 island dressing",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -531,7 +530,7 @@ func TestIngredientWithEmoji(t *testing.T) {
 	salt := Ingredient{
 		Name:   "🧂",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -575,7 +574,7 @@ func TestIngredientImplicitUnits(t *testing.T) {
 	chilli := Ingredient{
 		Name:   "chilli",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -597,7 +596,7 @@ func TestIngredientNoUnits(t *testing.T) {
 	chilli := Ingredient{
 		Name:   "chilli",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -619,7 +618,7 @@ func TestIngredientNoUnitsNotOnlyString(t *testing.T) {
 	peppers := Ingredient{
 		Name:   "5peppers",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -663,7 +662,7 @@ func TestIngredientWithoutStopper(t *testing.T) {
 	chilli := Ingredient{
 		Name:   "chilli",
 		Qty:    "",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 
@@ -801,7 +800,7 @@ func TestQuantityAsText(t *testing.T) {
 	thyme := Ingredient{
 		Name:   "thyme",
 		Qty:    "few",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "sprigs",
 	}
 
@@ -823,7 +822,7 @@ func TestQuantityDigitalString(t *testing.T) {
 	water := Ingredient{
 		Name:   "water",
 		Qty:    "7 k",
-		QtyVal: math.Inf(-1),
+		QtyVal: NoQty,
 		Unit:   "",
 	}
 

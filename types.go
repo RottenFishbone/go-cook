@@ -45,6 +45,36 @@ func (x Timer) ToString() string {
 	return x.Name
 }
 
+// Convert `Ingredient` to its base struct `component`
+func (node *Ingredient) toComponent() component {
+	return component{
+		Name:   node.Name,
+		Qty:    node.Qty,
+		QtyVal: node.QtyVal,
+		Unit:   node.Unit,
+	}
+}
+
+// Convert `Cookware` to its base struct `component`
+func (node *Cookware) toComponent() component {
+	return component{
+		Name:   node.Name,
+		Qty:    node.Qty,
+		QtyVal: node.QtyVal,
+		Unit:   node.Unit,
+	}
+}
+
+// Convert `Timer` to its base struct `component`
+func (node *Timer) toComponent() component {
+	return component{
+		Name:   node.Name,
+		Qty:    node.Qty,
+		QtyVal: node.QtyVal,
+		Unit:   node.Unit,
+	}
+}
+
 // A Step is one part of a recipe, consisting of a set of chunks which can be
 // read in order to build a human readable recipe.
 //
@@ -176,6 +206,11 @@ type component struct {
 	QtyVal float64 `json:"qtyVal"`
 	Unit   string  `json:"unit"`
 }
+
+// The value representing an unparsable Qty
+//
+// e.g. {Qty = "A splash", QtyVal = cook.NoQty}
+const NoQty = 0
 
 // Build an `Ingredient` from a `component`
 func (node *component) toIngredient() Ingredient {

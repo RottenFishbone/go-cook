@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -8,4 +9,9 @@ import (
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
+}
+
+func ShowError(err error) {
+	errstr := fmt.Sprintf("Error: %v\n", err.Error())
+	os.Stderr.WriteString(errstr)
 }

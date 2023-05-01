@@ -8,7 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/common"
 	"git.sr.ht/~rottenfishbone/go-cook/pkg/config"
+	"git.sr.ht/~rottenfishbone/go-cook/pkg/recipe"
 )
 
 // Ensures the config file is loaded. Panic on failure.
@@ -87,6 +89,29 @@ func GetAllRecipeNames() string {
 	}
 
 	return string(jsonBytes)
+}
+
+// Returns recipe data by the specified filepath
+//
+// `name` is a relative filepath from recipe root e.g.
+//
+//	"breakfast/eggs_benedict.cook"
+func GetRecipe(name string) string {
+	assertConfigLoaded()
+	root := config.Get(config.KeyRecipeDir)
+	fullPath := filepath.Join(root, name)
+
+	if !common.FileExists(fullPath) {
+		return ""
+	}
+
+	r := recipe.LoadFromFile(fullPath)
+	r.Name = name
+	jsonStr, err := json.Marshal(*r)
+	if err != nil {
+		common.ShowError(err)
+	}
+	return string(jsonStr)
 }
 
 // TODO
