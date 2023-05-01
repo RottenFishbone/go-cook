@@ -3,6 +3,7 @@ package config
 // TODO Platform independent configs
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -94,7 +95,8 @@ func ConfigInit(path string, recipes string, shopping string) bool {
 	if !common.FileExists(path) {
 		err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
 		if err != nil {
-			panic("Failed to create config directory at: " + filepath.Dir(path))
+			errstr := fmt.Sprintf("Error: %v\n", err.Error())
+			panic(errstr)
 		}
 	} else {
 		// Forbid accidental overwrites
@@ -185,4 +187,39 @@ func DefaultShoppingPath() string {
 	}
 
 	return path
+}
+
+// Tests for the existence of the data directories, if they do not exist, they
+// are created.
+//
+// Panics on failure.
+func EnsureDataDirInit() {
+	if !loaded {
+		panic("Attempted to init data dirs before loading configs")
+	}
+
+	rDir := Get(KeyRecipeDir)
+	sDir := Get(KeyShoppingDir)
+
+	// Spawn recipe dir
+	if !common.FileExists(rDir) {
+		err := os.MkdirAll(rDir, os.ModePerm)
+		if err != nil {
+			errstr := fmt.Sprintf("Error: %v\n", err.Error())
+			panic(errstr)
+		}
+
+		fmt.Printf("Created recipes directory at: %v\n", rDir)
+	}
+
+	// Spawn shopping list dir
+	if !common.FileExists(sDir) {
+		err := os.MkdirAll(sDir, os.ModePerm)
+		if err != nil {
+			errstr := fmt.Sprintf("Error: %v\n", err.Error())
+			panic(errstr)
+		}
+
+		fmt.Printf("Created shopping list directory at: %v\n", sDir)
+	}
 }

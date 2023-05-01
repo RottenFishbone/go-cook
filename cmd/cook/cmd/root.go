@@ -62,5 +62,7 @@ func initConfig() {
 			}
 			os.Exit(1)
 		}
+	} else {
+		config.EnsureDataDirInit()
 	}
 }
