@@ -13,7 +13,7 @@ fmt:
 
 .PHONY: clean
 clean:
-	rm cook
+	rm -f cook
 	go clean
 	go clean ./cmd/*
 	rm -rf ./internal/web/dist/*

@@ -2,7 +2,8 @@
   import {createEventDispatcher} from 'svelte';
   
   // Recipe title
-  export let title: string;
+  export let recipeName: string;
+  let title = recipeName.split('/').pop();
 
   const DELETE_DEFAULT = "Delete";
   const DELETE_CONFIRM = "You Sure?";
@@ -35,9 +36,11 @@
   function recipeClick() {
     if (!focused) { return; }
     if (!secondPress) { secondPress = true; return; }
-
-    //TODO fire view recipe event
-  }
+    dispatch('msg', {
+      tag: 'view',
+      msh: recipeName
+    })
+  } 
 
   function deleteClick() {
     if (deleteText==DELETE_DEFAULT) { 
@@ -47,12 +50,15 @@
 
     dispatch('msg', {
       tag: 'delete',
-      msg: title,
+      msg: recipeName,
     })
   }
 
   function editClick() {
-    //TODO fire edit recipe event
+    dispatch('msg', {
+      tag: 'edit',
+      msh: recipeName,
+    })
   }
 
 
@@ -64,16 +70,20 @@
     {title}
   </button>
   <div class="dropdown dropdown-left {focused ? '' : 'hidden'}">
-    <label tabindex="-1" class="btn m-1 text-xl">+</label>
+    <button tabindex="-1" class="btn m-1 text-xl">+</button>
     <ul tabindex="-1" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
-      <li class="my-1"><a class="justify-center">Edit Recipe</a></li>
       <li class="my-1">
-        <a class={`justify-center
+        <button class="text-neutral-content bg-neutral justify-center" on:click={editClick}>
+          Edit Recipe
+        </button>
+      </li>
+      <li class="my-1">
+        <button class={`justify-center
           bg-warning text-warning-content 
           hover:bg-primary hover:text-primary-content`}
            on:click={deleteClick}>
           {deleteText}
-        </a>
+        </button>
       </li>
     </ul>
   </div>
