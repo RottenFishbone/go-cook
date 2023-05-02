@@ -22,8 +22,6 @@ func forceNamed(name string, s y.Scanner, node y.Queryable) y.Queryable {
 // The parser will populate the AST according the the cooklang spec.
 // Some points to note:
 //   - comments are expected to have been stripped prior to parsing,
-//   - I did not explicitly include unicode into my (few) regexes, thus punctuation,
-//     whitespace and newline may not be to spec.
 //
 // [Cooklang spec](https://github.com/cooklang/spec/blob/fa9bc51515b3317da434cb2b5a4a6ac12257e60b/EBNF.md)
 func buildCookY(ast *y.AST) y.Parser {
@@ -44,18 +42,17 @@ func buildCookY(ast *y.AST) y.Parser {
 	crlf := y.AtomExact("\r\n", "CRLF")
 	lf := y.AtomExact("\n", "LF")
 	cr := y.AtomExact("\r", "CR")
+	uniNl := y.TokenExact(`[\x{000A}-\x{000D}\x{0085}\x{0028}\x{0029}]`, "UNICODE_NL")
 
 	// Tokens
 	specifierRegex := `[~@#]` // I hate this but idk how else to lookahead
 	specifier := y.TokenExact(specifierRegex, "SPEC")
-	whitespace := y.TokenExact(`[^\S\r\n]`, "WHITESPACE")
-	punctuation := y.TokenExact(
-		`[!@#$%^&*()+\-/|'"\\;:<=>?@\[\]^_~{}.,`+"`"+`]`,
-		"PUNCT")
+	whitespace := y.TokenExact(`[\p{Zs}\x{0009}]`, "WHITESPACE")
+	punctuation := y.TokenExact(`\pP`,"PUNCT")
 	char := y.TokenExact(`.`, "CHAR")
 	rawText := y.TokenExact(`.+`, "RAW")
 	// Combinators
-	nl := y.Many(nil, y.OrdChoice(nil, crlf, lf, cr))
+	nl := y.Many(nil, y.OrdChoice(nil, crlf, lf, cr, uniNl))
 	//---------------
 
 	//-------------
