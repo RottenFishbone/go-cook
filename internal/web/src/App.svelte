@@ -1,6 +1,6 @@
 <script lang="ts">
   import Layout from "./lib/layout.svelte";
-  import RecipePage from "./lib/recipe_page/recipe_page.svelte";
+  import RecipePage from "./lib/recipes_page/recipes_page.svelte";
   
   function handleNavMsg(event: { detail: { text: any; }; }) {
     switch (event.detail.text) {

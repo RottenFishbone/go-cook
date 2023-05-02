@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"git.sr.ht/~rottenfishbone/go-cook/pkg/common"
 	"git.sr.ht/~rottenfishbone/go-cook/pkg/config"
@@ -78,7 +79,9 @@ func GetAllRecipeNames() string {
 				continue
 			}
 
-			recipeName := filepath.Join(dir, entry.Name())[len(root)+1:]
+			recipeName := strings.TrimSuffix(
+				filepath.Join(dir, entry.Name())[len(root)+1:],
+				".cook")
 			recipes = append(recipes, recipeName)
 		}
 	}
@@ -91,27 +94,83 @@ func GetAllRecipeNames() string {
 	return string(jsonBytes)
 }
 
-// Returns recipe data by the specified filepath
+// Returns recipe data by the specified filepath (without extension)
 //
 // `name` is a relative filepath from recipe root e.g.
 //
-//	"breakfast/eggs_benedict.cook"
+//	"breakfast/eggs_benedict"
+//
+// This can only read `.cook` files within the recipe directory.
 func GetRecipe(name string) string {
 	assertConfigLoaded()
-	root := config.Get(config.KeyRecipeDir)
-	fullPath := filepath.Join(root, name)
 
-	if !common.FileExists(fullPath) {
+	root := config.Get(config.KeyRecipeDir)
+	fullpath := filepath.Join(root, name+".cook")
+
+	// Expand relative filepaths to prevent reading outside of root
+	fullpath, err := filepath.Abs(fullpath)
+	if err != nil {
+		common.ShowError(err)
+		return ""
+	}
+	// Ensure expanded path is within root
+	if !strings.HasPrefix(fullpath, root) {
+		os.Stderr.WriteString("Error: Attempted to access outside data directory\n")
 		return ""
 	}
 
-	r := recipe.LoadFromFile(fullPath)
+	if !common.FileExists(fullpath) {
+		return ""
+	}
+
+	r := recipe.LoadFromFile(fullpath)
 	r.Name = name
 	jsonStr, err := json.Marshal(*r)
 	if err != nil {
 		common.ShowError(err)
 	}
 	return string(jsonStr)
+}
+
+// Deletes a recipe based on its relative file path from the recipe root
+// folder as defined in the config file.
+// e.g.
+//
+//	"breakfast/eggs_benedict"
+//
+// # Returns true on success, false on delete
+//
+// This can only delete `.cook` files within the recipe directory.
+func DeleteRecipe(name string) bool {
+	assertConfigLoaded()
+
+	root := config.Get(config.KeyRecipeDir)
+	fullpath := filepath.Join(root, name+".cook")
+
+	// Expand relative filepaths to prevent reading outside of root
+	fullpath, err := filepath.Abs(fullpath)
+	if err != nil {
+		common.ShowError(err)
+		return false
+	}
+	// Ensure expanded path is within root
+	if !strings.HasPrefix(fullpath, root) {
+		os.Stderr.WriteString("Error: Attempted to access outside data directory\n")
+		return false
+	}
+
+	if !common.FileExists(fullpath) {
+		return false
+	}
+
+	// Delete the file
+	err = os.Remove(fullpath)
+	if err != nil {
+		common.ShowError(err)
+		return false
+	}
+
+	return true
 }
 
 // TODO
