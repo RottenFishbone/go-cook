@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 
 	"git.sr.ht/~rottenfishbone/go-cook/api"
 	"git.sr.ht/~rottenfishbone/go-cook/internal/web"
@@ -21,13 +22,20 @@ func Start(port int) {
 		panic("Attempted to start server with invalid port")
 	}
 
+	// Ensure the webserver was correctly embedded at compile time
+	entries, _ := fs.ReadDir(web.WebDist, "dist")
+	if len(entries) == 1 {
+		os.Stderr.WriteString("Webapp was not compiled alongside 'cook', see build instructions to enable the server.\n")
+		os.Exit(1)
+	}
+
 	for k, v := range apiHandlerFuncs {
 		http.HandleFunc("/api/0/"+k, v)
 	}
 
 	// Fetch the web server files and serve 'dist' as root
-	fs, _ := fs.Sub(web.WebDist, "dist")
-	http.Handle("/", http.FileServer(http.FS(fs)))
+	filesys, _ := fs.Sub(web.WebDist, "dist")
+	http.Handle("/", http.FileServer(http.FS(filesys)))
 
 	fmt.Printf("Starting server at: 127.0.0.1:%v...\n", port)
 	addr := ":" + fmt.Sprint(port)
