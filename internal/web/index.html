@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="cyberlux">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/burger.svg" />
@@ -9,5 +9,22 @@
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+    <script>
+    // Try to load appropriate theme based of cookies/preferences
+    let theme = localStorage.getItem('theme');
+    let html = document.getElementsByTagName('html')[0];
+    if (theme) {
+        html.style.backgroundColor = '#2c2727';
+        html.setAttribute('data-theme', theme);
+    }
+    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        html.style.backgroundColor = '#2c2727';
+        html.setAttribute('data-theme', 'ultraforest');
+    
+        localStorage.setItem('theme', 'ultraforest');
+    }
+
+    // defaults to light
+    </script>
   </body>
 </html>

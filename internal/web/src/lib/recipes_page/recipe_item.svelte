@@ -69,27 +69,25 @@
 
 <div bind:this={group} class="flex flex-row" on:focusin={focusin} on:focusout={focusout}>
   <!-- On focused state, allow editng and recipe clicking -->
-  <button class="flex-1 btn normal-case" on:click={recipeClick}>
+  <button class="flex-1 btn normal-case btn-ghost" on:click={recipeClick}>
     {title}
   </button>
   
   <!-- Dropdown and expand button -->
   <div class="dropdown dropdown-left {focused ? '' : 'hidden'} flex-none">
-    <button tabindex="-1" class="text-xl btn btn-square">+</button>
+    <button tabindex="-1" class="text-xl btn btn-ghost btn-square">+</button>
     
     <!-- Dropdown menu -->
     <ul tabindex="-1" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
       <!-- `Edit` button -->
       <li class="my-1">
-        <button class="text-neutral-content bg-neutral justify-center btn-disabled" on:click={editClick}>
+        <button class="upper-z justify-center btn-disabled" on:click={editClick}>
           Edit Recipe (Unimpl)
         </button>
       </li>
       <!-- Delete Button -->
       <li class="my-1">
-        <button class={`justify-center
-          bg-warning text-warning-content 
-          hover:bg-primary hover:text-primary-content`}
+        <button class="justify-center btn btn-error text-error-content bg-error"
            on:click={deleteClick}>
           {deleteText}
         </button>

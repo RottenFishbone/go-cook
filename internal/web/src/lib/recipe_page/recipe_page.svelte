@@ -29,14 +29,15 @@
       throw new Error(`Failed to fetch recipe '${name}': ${resp.status} ${resp.statusText}`);
     }
   }
-
+  
   let loadFailed = false;
   let mounted = false;
 
   onMount(async () => {
+    // This timer will hide content briefly to avoid flashing the user with text
     setTimeout(()=>{
       mounted = true;
-    }, 250);
+    }, 200);
   
     try {
       recipe = await fetchRecipeByName(recipeName);
@@ -55,7 +56,7 @@
     <!-- arrange cards horizontally on larger screens -->
     <div class="md:flex gap-10"> 
       <!-- Ingredients Card -->
-      <div class="card bg-neutral text-neutral-content w-full h-min mx-auto my-4">
+      <div class="card lower-z w-full h-min mx-auto my-4">
         <div class="card-body">
           <!-- Title -->
           <div class="card-title text-lg">Ingredients</div>
@@ -82,7 +83,7 @@
       </div>
       {#if cookware.length > 0}
       <!-- Cookware Card -->
-      <div class="card bg-neutral text-neutral-content rounded-box w-full h-min mx-auto my-4">
+      <div class="card lower-z rounded-box w-full h-min mx-auto my-4">
         <div class="card-body">
           <!-- Title -->
           <div class="card-title text-lg">Cookware</div>
@@ -107,21 +108,24 @@
     </div>
 
     <!--- Steps --->
-    <div class="card bg-neutral text-neutral-content rounded-box w-full h-min mx-auto my-4">
+    <div class="card lower-z rounded-box w-full h-min mx-auto my-4">
       <div class="card-body">
+        <!-- Title -->
         <div class="card-title">Steps</div>
+
+        <!-- Steps List -->
         <ol class="list-decimal list-outside md:mx-5">
           {#each steps as step}
-            <li class="my-5">
+            <li class="my-5 rounded-box list-item upper-z p-5">
               {#each step as chunk}
                 {#if chunk.tag === 'text'}
                   {''+chunk.data}
                 {:else if chunk.tag === 'ingredient'}
-                  {chunk.data.name}
+                  <span class="text-primary">{chunk.data.name}</span>
                 {:else if chunk.tag === 'cookware'}
-                  {chunk.data.name}
+                  <span class="text-accent">{chunk.data.name}</span>
                 {:else if chunk.tag === 'timer'}
-                  {chunk.data.qty} {chunk.data.unit}
+                  <span class="text-info">{chunk.data.qty} {chunk.data.unit}</span>
                 {/if}
               {/each}
             </li>
@@ -133,7 +137,7 @@
 
 
 {:else if !loadFailed}
-  <div class={`flex flex-col justify-center mx-auto max-w-md ${mounted ? '' : 'min-h-screen opacity-0'}`}>
+  <div class={`flex flex-col justify-center mx-auto max-w-md transition-opacity duration-750 ${mounted ? '' : 'min-h-screen opacity-0'}`}>
     <div class="text-xl mx-auto my-5">Fetching recipe...</div>
     <div class="btn btn-circle btn-xl btn-disabled mx-auto loading btn-primary"/>
     </div>

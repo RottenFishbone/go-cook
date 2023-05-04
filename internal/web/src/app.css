@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.lower-z {
+  @apply bg-base-200 text-base-content;
+}
+.upper-z {
+  @apply bg-base-300 text-base-content;
+}

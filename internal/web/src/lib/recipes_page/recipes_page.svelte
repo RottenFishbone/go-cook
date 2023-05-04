@@ -25,9 +25,10 @@
 
   // Load the recipes immediately
   onMount(async () => {
+    // This timer will hide content briefly to avoid flashing the user with text
     setTimeout(()=>{
       mounted = true;
-    }, 250);
+    }, 200);
 
     try {
       recipes = await fetchRecipeList();
@@ -87,7 +88,7 @@
   </div>
   <!-- Recipe List -->
   <div class="flex justify-center">
-    <ul class="[&>*]:text-neutral-content bg-neutral rounded-box max-w-md w-full p-2">
+    <ul class="lower-z rounded-box max-w-md w-full p-2">
         {#each recipes as recipe (recipe)}
           <li class="my-2"><RecipeItem recipeName={recipe} on:msg={handleItmMsg}/></li>
         {/each}
@@ -100,7 +101,7 @@
 
 <!-- Loading spinner -->
 {:else if !failedLoad}
-  <div class={`flex flex-col justify-center mx-auto max-w-md transition-opacity ${mounted ? '' : 'min-h-screen opacity-0'}`}>
+  <div class={`flex flex-col justify-center mx-auto max-w-md transition-opacity duration-750 ${mounted ? '' : 'min-h-screen opacity-0'}`}>
     <div class="text-xl mx-auto my-5">Fetching recipes...</div>
     <div class="btn btn-circle btn-xl btn-disabled mx-auto loading btn-primary"></div>
   </div>

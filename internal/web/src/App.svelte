@@ -1,4 +1,6 @@
 <script lang='ts'>
+  import { onMount } from 'svelte';
+  
   import { State } from './lib/common'
 
   import Layout from './lib/layout.svelte';
@@ -24,12 +26,11 @@
         console.debug('Not implemented.');
         break;
       default:
-        
         console.error(`handleNavMessage recieved unhandled event: ${event}`);
         break;
     }
   }
-
+  
 </script>
 
 <main>
@@ -39,7 +40,7 @@
   {:else if state == State.RecipeView}
     <RecipePage recipeName={currentRecipeName} on:msg={handleNavMsg}/>
   {:else}
-    <div class="text-xl text-red-700 flex justify-center m-10">
+    <div class="text-xl text-error flex justify-center m-10">
       Invalid page state reached.
       <br>
       (src/App.svelte)
