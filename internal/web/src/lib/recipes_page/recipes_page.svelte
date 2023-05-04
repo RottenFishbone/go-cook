@@ -21,9 +21,14 @@
   }
 
   let failedLoad = false;
+  let mounted = false;
 
   // Load the recipes immediately
   onMount(async () => {
+    setTimeout(()=>{
+      mounted = true;
+    }, 250);
+
     try {
       recipes = await fetchRecipeList();
     } catch (err) {
@@ -95,7 +100,7 @@
 
 <!-- Loading spinner -->
 {:else if !failedLoad}
-  <div class="flex flex-col justify-center mx-auto max-w-md">
+  <div class={`flex flex-col justify-center mx-auto max-w-md transition-opacity ${mounted ? '' : 'min-h-screen opacity-0'}`}>
     <div class="text-xl mx-auto my-5">Fetching recipes...</div>
     <div class="btn btn-circle btn-xl btn-disabled mx-auto loading btn-primary"></div>
   </div>

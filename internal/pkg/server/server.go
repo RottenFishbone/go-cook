@@ -22,18 +22,18 @@ func Start(port int, onlyApi bool) {
 		panic("Attempted to start server with invalid port")
 	}
 
-	// Ensure the webserver was correctly embedded at compile time
-	entries, _ := fs.ReadDir(web.WebDist, "dist")
-	if len(entries) == 1 {
-		os.Stderr.WriteString("Webapp was not compiled alongside 'cook', see build instructions to enable the server.\n")
-		os.Exit(1)
-	}
-
 	for k, v := range apiHandlerFuncs {
 		http.HandleFunc("/api/0/"+k, v)
 	}
 
 	if !onlyApi {
+		// Ensure the webserver was correctly embedded at compile time
+		entries, _ := fs.ReadDir(web.WebDist, "dist")
+		if len(entries) == 1 {
+			os.Stderr.WriteString("Webapp was not compiled alongside 'cook', see build instructions to enable the server.\n")
+			os.Exit(1)
+		}
+
 		// Fetch the web server files and serve 'dist' as root
 		filesys, _ := fs.Sub(web.WebDist, "dist")
 		http.Handle("/", http.FileServer(http.FS(filesys)))

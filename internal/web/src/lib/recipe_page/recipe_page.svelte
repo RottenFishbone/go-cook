@@ -29,9 +29,21 @@
       throw new Error(`Failed to fetch recipe '${name}': ${resp.status} ${resp.statusText}`);
     }
   }
-  
+
+  let loadFailed = false;
+  let mounted = false;
+
   onMount(async () => {
-    recipe = await fetchRecipeByName(recipeName);
+    setTimeout(()=>{
+      mounted = true;
+    }, 250);
+  
+    try {
+      recipe = await fetchRecipeByName(recipeName);
+    } catch (err) {
+      loadFailed = true;
+      throw err;
+    }
   });
 
 </script>
@@ -120,9 +132,16 @@
   </div>
 
 
-{:else}
-  <div class="flex flex-col justify-center mx-auto max-w-md">
+{:else if !loadFailed}
+  <div class={`flex flex-col justify-center mx-auto max-w-md ${mounted ? '' : 'min-h-screen opacity-0'}`}>
     <div class="text-xl mx-auto my-5">Fetching recipe...</div>
     <div class="btn btn-circle btn-xl btn-disabled mx-auto loading btn-primary"/>
+    </div>
+{:else}
+  <div class="flex justify-center mx-auto max-w-md">
+    <div class="my-5 bg-warning text-warning-content text-lg p-2">
+      Failed to load Recipe from server.<br/>
+      Try Refreshing?
+    </div>
   </div>
 {/if}
