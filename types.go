@@ -98,9 +98,9 @@ func (s *Step) MarshalJSON() ([]byte, error) {
 	for i, chunk := range *s {
 		var tag string
 		// Can't type switch into a hole (e.g. switch _ = chunk.(type))
-		// because Go Devs are supreme beings
-		var fixYourDamnCompilerWarnings Chunk
-		switch opinionatedLanguageDevs := chunk.(type) {
+		// because Go Devs are supreme beings that have helped me optimize my codebase
+		var opinionatedLanguageDevs Chunk
+		switch fixYourDamnCompilerWarnings := chunk.(type) {
 		case Text:
 			tag = "text"
 		case Ingredient:
@@ -110,10 +110,11 @@ func (s *Step) MarshalJSON() ([]byte, error) {
 		case Timer:
 			tag = "timer"
 		default:
-			fixYourDamnCompilerWarnings = opinionatedLanguageDevs
+			opinionatedLanguageDevs = fixYourDamnCompilerWarnings
 			panic("Tried to encode unhandled Chunk type")
 		}
-		var _ = fixYourDamnCompilerWarnings
+		// Gotta 'use' the variable, right?
+		var _ = opinionatedLanguageDevs
 
 		wrapped := wrapper{
 			Tag:  tag,

@@ -17,7 +17,7 @@ var apiHandlerFuncs = map[string]func(http.ResponseWriter, *http.Request){
 	"recipes/byName":   apiRecipeByName,
 }
 
-func Start(port int) {
+func Start(port int, onlyApi bool) {
 	if port < 0 || port > 65535 {
 		panic("Attempted to start server with invalid port")
 	}
@@ -33,12 +33,14 @@ func Start(port int) {
 		http.HandleFunc("/api/0/"+k, v)
 	}
 
-	// Fetch the web server files and serve 'dist' as root
-	filesys, _ := fs.Sub(web.WebDist, "dist")
-	http.Handle("/", http.FileServer(http.FS(filesys)))
+	if !onlyApi {
+		// Fetch the web server files and serve 'dist' as root
+		filesys, _ := fs.Sub(web.WebDist, "dist")
+		http.Handle("/", http.FileServer(http.FS(filesys)))
+	}
 
 	fmt.Printf("Starting server at: 127.0.0.1:%v...\n", port)
-	addr := ":" + fmt.Sprint(port)
+	addr := "0.0.0.0:" + fmt.Sprint(port)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
@@ -56,6 +58,7 @@ func apiRecipeByName(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	if name == "" {
 		http.Error(w, "Malformed Query, missing `name` parameter.", http.StatusUnprocessableEntity)
+		return
 	}
 
 	// Handle the request, based on the method requested
@@ -66,14 +69,17 @@ func apiRecipeByName(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(recipeStr))
 		} else {
 			http.Error(w, "File not found.", http.StatusNotFound)
+			return
 		}
 	case "DELETE":
 		if api.DeleteRecipe(name) {
 			w.WriteHeader(http.StatusOK)
 		} else {
 			http.Error(w, "File not found.", http.StatusNotFound)
+			return
 		}
 	default:
 		http.Error(w, "Method not supported.", http.StatusMethodNotAllowed)
+		return
 	}
 }

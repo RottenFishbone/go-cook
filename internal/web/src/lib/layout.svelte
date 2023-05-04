@@ -1,12 +1,12 @@
 <script lang="ts">
+  import { State } from "./common";
   import {createEventDispatcher} from 'svelte';
-
-  import Icon from "./icon.svelte";
-
+  
   const dispatch = createEventDispatcher();
-	function clickEvent(msg: string) {
-		dispatch('navclick', {
-			text: msg
+	function clickEvent(state: State) {
+		dispatch('msg', {
+      tag: state,
+      msg: ''
     });
   }
 
@@ -15,7 +15,7 @@
 <div class="navbar">
   <!-- Home button -->
   <div class="flex-1">
-    <button class="btn btn-ghost normal-case text-xl" on:click="{_=>clickEvent('recipe')}">
+    <button class="btn btn-ghost normal-case text-xl" on:click="{_=>clickEvent(State.RecipeList)}">
       <div class="text-primary">Go</div>
       Cook
     </button>
@@ -25,15 +25,12 @@
   <div class="flex-none">
     <ul class="menu menu-horizontal px-1">
       <li>
-        <button class="btn btn-ghost normal-case" on:click="{_=>clickEvent('recipe')}">
+        <button class="btn btn-ghost normal-case" on:click="{_=>clickEvent(State.RecipeList)}">
           Recipes
         </button>
       </li>
       <li>
-        <button class="hidden sm:flex btn btn-ghost btn-disabled normal-case">Settings</button>
-        <button tabindex="0" class="btn btn-ghost btn-circle btn-disabled sm:hidden">
-          <Icon name="gear" class="h-5 w-5" width="24" height="24" />
-        </button>
+        <button class="flex btn btn-ghost btn-disabled normal-case">Settings</button>
       </li>
     </ul>
   </div>
@@ -47,7 +44,7 @@
 
   <slot/>
 
-<footer class="footer footer-center p-10 text-neutral-content">
+<footer class="footer footer-center p-10">
   <div class="divider">
     <p class="text-xs">
     Copyright 2023 Jayden Dumouchel 

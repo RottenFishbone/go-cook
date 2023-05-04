@@ -48,7 +48,7 @@ func buildCookY(ast *y.AST) y.Parser {
 	specifierRegex := `[~@#]` // I hate this but idk how else to lookahead
 	specifier := y.TokenExact(specifierRegex, "SPEC")
 	whitespace := y.TokenExact(`[\p{Zs}\x{0009}]`, "WHITESPACE")
-	punctuation := y.TokenExact(`\pP`,"PUNCT")
+	punctuation := y.TokenExact(`\pP`, "PUNCT")
 	char := y.TokenExact(`.`, "CHAR")
 	rawText := y.TokenExact(`.+`, "RAW")
 	// Combinators
