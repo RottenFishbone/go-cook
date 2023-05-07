@@ -205,6 +205,8 @@ func UpdateRecipe(name string, contents *[]byte) error {
 func RenameRecipe(name string, target string) error {
 	assertConfigLoaded()
 	var err error
+	// Don't let evil users have spaces!
+	target = strings.ReplaceAll(target, " ", "_")
 
 	// Sanitize both inputs
 	rootDir := config.Get(config.KeyRecipeDir)
