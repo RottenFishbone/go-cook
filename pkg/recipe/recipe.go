@@ -8,7 +8,7 @@ import (
 	"text/tabwriter"
 
 	"git.sr.ht/~rottenfishbone/go-cook"
-	"git.sr.ht/~rottenfishbone/go-cook/pkg/common"
+	"git.sr.ht/~rottenfishbone/go-cook/internal/pkg/common"
 )
 
 // Reads a recipe file and parses it into a Recipe struct.

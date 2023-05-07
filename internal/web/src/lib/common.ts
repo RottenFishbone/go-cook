@@ -7,6 +7,7 @@ export let apiRoot: string;
 export enum State {
     RecipeList,
     RecipeView,
+	RecipeEdit,
     Settings,
 }
 
@@ -32,7 +33,7 @@ export interface Recipe {
 }
 
 export function stripRecipeName(name: string): string {
-    return name.split('/').pop().replace('_', ' ');
+    return name.split('/').pop().replaceAll('_', ' ');
 }
 
 // Swap the API server address to the Go server's local address when in dev mode

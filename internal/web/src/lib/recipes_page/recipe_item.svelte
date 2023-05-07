@@ -67,30 +67,34 @@
   }
 </script>
 
+<!-- 
+	Note: all the buttons are labels because Apple knows best and intentionally 
+	prevent buttons from taking focus on click like the rest of the world.
+-->
 <div bind:this={group} class="flex flex-row" on:focusin={focusin} on:focusout={focusout}>
   <!-- On focused state, allow editng and recipe clicking -->
-  <button class="flex-1 btn normal-case btn-ghost" on:click={recipeClick}>
+	<label tabindex="0" class="flex-1 btn normal-case btn-ghost" on:click={recipeClick}>
     {title}
-  </button>
+  </label>
   
   <!-- Dropdown and expand button -->
   <div class="dropdown dropdown-left {focused ? '' : 'hidden'} flex-none">
-    <button tabindex="-1" class="text-xl btn btn-ghost btn-square">+</button>
+    <label tabindex="0" class="text-xl btn btn-ghost btn-square">+</label>
     
     <!-- Dropdown menu -->
     <ul tabindex="-1" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
       <!-- `Edit` button -->
       <li class="my-1">
-        <button class="upper-z justify-center btn-disabled" on:click={editClick}>
-          Edit Recipe (Unimpl)
-        </button>
+        <label tabindex="0" class="upper-z justify-center" on:click={editClick}>
+          Edit Recipe
+        </label>
       </li>
       <!-- Delete Button -->
       <li class="my-1">
-        <button class="justify-center btn btn-error text-error-content bg-error"
+        <label tabindex="0" class="justify-center btn btn-error text-error-content bg-error"
            on:click={deleteClick}>
           {deleteText}
-        </button>
+        </label>
       </li>
 
     </ul>

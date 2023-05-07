@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
 	
 	import { apiRoot, State } from '../common';
+
 	import RecipeItem from './recipe_item.svelte';
 
   // A list of recipe names (with their relative filepaths)
@@ -12,7 +13,7 @@
 
   // Loads the recipe names from the API server
   async function fetchRecipeList() {
-		const resp = await fetch(`${apiRoot}/recipes/allNames`);
+		const resp = await fetch(`${apiRoot}/recipes/names?count=0`);
     if (resp.ok) {
       return resp.json();
     } else {
@@ -59,10 +60,13 @@
 					alert('Failed to connect to API server: ' + err);
         });
         break;
-        case 'edit':
-        //TODO Implement
+		 	case 'edit':
+        dispatch('msg', {
+          tag: State.RecipeEdit,
+          msg: event.detail.msg,
+        });
         break;
-        case 'view':
+      case 'view':
         // Bubble the event up to a component that can handle it
         dispatch('msg', {
           tag: State.RecipeView,

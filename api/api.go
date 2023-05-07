@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.sr.ht/~rottenfishbone/go-cook/pkg/common"
+	"git.sr.ht/~rottenfishbone/go-cook/internal/pkg/common"
 	"git.sr.ht/~rottenfishbone/go-cook/pkg/config"
 	"git.sr.ht/~rottenfishbone/go-cook/pkg/recipe"
 )

@@ -12,7 +12,7 @@
 
 </script>
 
-<div class="navbar">
+<div class="navbar sticky top-0 bg-base-100 bg-opacity-75 z-50">
   <!-- Home button -->
   <div class="flex-1">
     <button class="btn btn-ghost normal-case text-xl" on:click="{_=>clickEvent(State.RecipeList)}">
@@ -44,7 +44,7 @@
 
   <slot/>
 
-<footer class="footer footer-center p-10">
+<footer class="footer footer-center p-10 my-10">
   <div class="divider">
     <p class="text-xs">
     Copyright 2023 Jayden Dumouchel 

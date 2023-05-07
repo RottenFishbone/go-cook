@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"git.sr.ht/~rottenfishbone/go-cook"
-	"git.sr.ht/~rottenfishbone/go-cook/pkg/common"
+	"git.sr.ht/~rottenfishbone/go-cook/internal/pkg/common"
 	"git.sr.ht/~rottenfishbone/go-cook/pkg/config"
 	"git.sr.ht/~rottenfishbone/go-cook/pkg/recipe"
 	"github.com/spf13/cobra"

@@ -5,6 +5,7 @@
   import { apiRoot, noQtyName, stripRecipeName } from '../common'
 
   export let recipeName: string;
+  export let recipeText = '';
 
   let recipe: Recipe | null = null;
 
@@ -29,7 +30,19 @@
       throw new Error(`Failed to fetch recipe '${name}': ${resp.status} ${resp.statusText}`);
     }
   }
-  
+
+  async function fetchParsedRecipe(recipeText: string) {
+    const resp = await fetch(`${apiRoot}/recipes/parse`, {
+      method: "POST",
+      body: recipeText,
+    });
+    if (resp.ok){
+      return resp.json()
+    } else {
+      throw new Error(`Failed to parse recipe: ${resp.status} ${resp.statusText}`);
+    }
+  }
+
   let loadFailed = false;
   let mounted = false;
 
@@ -40,7 +53,11 @@
     }, 200);
   
     try {
-      recipe = await fetchRecipeByName(recipeName);
+      if (recipeText == '') { 
+        recipe = await fetchRecipeByName(recipeName);
+      } else {
+        recipe = await fetchParsedRecipe(recipeText);
+      }
     } catch (err) {
       loadFailed = true;
       throw err;
@@ -52,7 +69,7 @@
 {#if recipe}
   <!-- Main Display Container -->
   <div class="max-w-md mx-auto md:max-w-2xl text-md">
-    <div class="divider flex justify-center text-2xl">{stripRecipeName(recipe.name)}</div>
+    <div class="divider flex justify-center text-2xl">{stripRecipeName(recipeName)}</div>
     <!-- arrange cards horizontally on larger screens -->
     <div class="md:flex gap-10"> 
       <!-- Ingredients Card -->
@@ -95,6 +112,9 @@
                   <td class="whitespace-normal break-words min-w-0 text-right">
                     {cw.qty} {cw.unit}
                   </td>
+                {:else}
+                  <!-- Place holder column so the name still goes in the 2nd col -->
+                  <td class="min-w-0"/>
                 {/if}
                 <td class="whitespace-normal break-words min-w-0 text-left">
                   {cw.name}
