@@ -169,7 +169,8 @@ func UpdateRecipe(name string, contents *[]byte) error {
 		// ^ Create new in original's place
 		recoveryErr := os.Rename(name+".bak", name)
 		if recoveryErr != nil {
-			common.ShowError(errors.Join(err, recoveryErr))
+			common.ShowError(err)
+			common.ShowError(recoveryErr)
 		}
 		return err
 	}
@@ -179,7 +180,9 @@ func UpdateRecipe(name string, contents *[]byte) error {
 		undoErr := os.Remove(name)
 		recoveryErr := os.Rename(name+".bak", name)
 		if undoErr != nil || recoveryErr != nil {
-			common.ShowError(errors.Join(err, undoErr, recoveryErr))
+			common.ShowError(err)
+			common.ShowError(undoErr)
+			common.ShowError(recoveryErr)
 		}
 		return err
 	}
