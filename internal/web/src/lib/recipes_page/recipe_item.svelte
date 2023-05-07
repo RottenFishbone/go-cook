@@ -72,7 +72,7 @@
 	prevent buttons from taking focus on click like the rest of the world.
 -->
 <div bind:this={group} class="flex flex-row" on:focusin={focusin} on:focusout={focusout}>
-  <!-- On focused state, allow editng and recipe clicking -->
+	<!-- On focused state, allow editng and recipe clicking -->
 	<label tabindex="0" class="flex-1 btn normal-case btn-ghost" on:click={recipeClick}>
     {title}
   </label>
@@ -85,7 +85,7 @@
     <ul tabindex="-1" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
       <!-- `Edit` button -->
       <li class="my-1">
-        <label tabindex="0" class="upper-z justify-center" on:click={editClick}>
+				<label tabindex="0" class="upper-z justify-center" on:click={editClick}>
           Edit Recipe
         </label>
       </li>

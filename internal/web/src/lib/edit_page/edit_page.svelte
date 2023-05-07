@@ -39,7 +39,6 @@
 
   // Fetches the recipe's raw file from the API server.
   async function fetchRecipeFile(name: string) {
-    console.log(name);
     const resp = await fetch(`${apiRoot}/recipes/byName?name=${name}&raw=true`);
     if (resp.ok) {
       return await resp.text()
@@ -217,7 +216,7 @@
 
     <!-- Preview -->
     {#if tabState == TabState.Preview }
-      <RecipePage recipeName={recipeName} recipeText={textArea} />
+			<RecipePage recipeName={recipeName} recipeText={textArea} previewMode={true} />
     {/if}
   </div>
 

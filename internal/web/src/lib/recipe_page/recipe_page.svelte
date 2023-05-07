@@ -1,16 +1,22 @@
 <script lang='ts'>
-  import { onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
   
-  import type { Recipe, Chunk, Component } from '../common'
+  import { type Recipe, type Chunk, type Component, State } from '../common'
   import { apiRoot, noQtyName, stripRecipeName } from '../common'
 
+	// Recipe name will be the title of the page, and if no recipeText is provided
+	// it will be fetched from the API
   export let recipeName: string;
-  export let recipeText = '';
+	// Optionally, recipe text can be parsed into a recipe (e.g. preview)
+	export let recipeText: string = '';
+	// Preview mode hides edit button functionality
+	export let previewMode: boolean = false;
 
-  let recipe: Recipe | null = null;
+	// dispatcher to communicate with parent
+	const dispatch = createEventDispatcher();
 
-
-  // Recipe components
+	// Recipe related variables
+	let recipe: Recipe | null = null;
   let ingredients: [Component];
   let cookware: [Component];
   let timers: [Component];
@@ -22,6 +28,8 @@
   $: timers = recipe ? recipe.timers : null;
   $: steps = recipe ? recipe.steps : null;
 
+
+	// Fetches a recipe as JSON (by name)
   async function fetchRecipeByName(name: string) {
     const resp = await fetch(`${apiRoot}/recipes/byName?name=${name}`);
     if (resp.ok){
@@ -31,6 +39,7 @@
     }
   }
 
+	// Fetches a parsed version of recipeText
   async function fetchParsedRecipe(recipeText: string) {
     const resp = await fetch(`${apiRoot}/recipes/parse`, {
       method: "POST",
@@ -43,8 +52,8 @@
     }
   }
 
-  let loadFailed = false;
-  let mounted = false;
+  let loadFailed = false;		// Flag: fetching recipe failed
+  let mounted = false;			// Flag: component has been mounted to DOM (for a time)
 
   onMount(async () => {
     // This timer will hide content briefly to avoid flashing the user with text
@@ -64,13 +73,29 @@
     }
   });
 
+
+	function editClick() {
+		dispatch('msg', {
+			tag: State.RecipeEdit,
+			msg: recipeName,
+		});
+	}
 </script>
 
 {#if recipe}
   <!-- Main Display Container -->
-  <div class="max-w-md mx-auto md:max-w-2xl text-md">
-    <div class="divider flex justify-center text-2xl">{stripRecipeName(recipeName)}</div>
-    <!-- arrange cards horizontally on larger screens -->
+	<div class="max-w-md mx-auto md:max-w-2xl text-md">
+		<div class="sm:flex">
+			{#if !previewMode}
+			<div class="order-2 flex justify-end">
+				<button class="btn btn-ghost mx-3" on:click={editClick}>edit</button>
+			</div>
+			{/if}
+			<div class="order-1 text-center flex-1 text-2xl break-words whitespace-normal mx-2">
+				{stripRecipeName(recipeName)}
+			</div>
+		</div>
+		<!-- arrange cards horizontally on larger screens -->
     <div class="md:flex gap-10"> 
       <!-- Ingredients Card -->
       <div class="card lower-z w-full h-min mx-auto my-4">
