@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -201,92 +200,25 @@ func handleRecipeByNamePUT(name string, body *[]byte, w http.ResponseWriter) {
 func handleRecipeByNamePOST(name string, rename string, body *[]byte, w http.ResponseWriter) {
 	// TODO recipe validations
 	var err error
-	rootDir := config.Get(config.KeyRecipeDir)
 
-	var path string
-	if path, err = common.SanitizeRelPath(rootDir, name+".cook"); err != nil {
-		// Cannot access outside of recipes
-		common.ShowError(err)
-		http.Error(w, "Attempted to access outside directory.", http.StatusBadRequest)
-		return
-	} else if !common.FileExists(path) {
-		// Cannot modify non-existent files
-		http.Error(w, "File not found.", http.StatusNotFound)
-		return
+	// If rename is defined, rename the recipe file and set name to rename
+	if rename != "" {
+		if err = api.RenameRecipe(name, rename); err != nil {
+			errMsg := fmt.Sprintf("Failed to rename: %s", err)
+			http.Error(w, errMsg, http.StatusInternalServerError)
+			return
+		}
+		name = rename
 	}
 
-	if rename != "" { // Handle renaming
-		if rename, err = common.SanitizeRelPath(rootDir, rename+".cook"); err != nil {
-			// Prevent out of bounds rename target
-			common.ShowError(err)
-			http.Error(w, "Attempted to write outside directory.", http.StatusBadRequest)
-			return
-		} else if common.FileExists(rename) {
-			// Prevent overwrites
-			http.Error(w, "Attempted to overwrite.", http.StatusBadRequest)
+	if body != nil && len(*body) > 0 {
+		// Update contents with provided body
+		if err = api.UpdateRecipe(name, body); err != nil {
+			errMsg := fmt.Sprintf("Failed to update: %s", err)
+			http.Error(w, errMsg, http.StatusInternalServerError)
 			return
 		}
-
-		if len(*body) == 0 {
-			// Simple rename
-			err = os.Rename(path, rename)
-			if err != nil {
-				common.ShowError(err)
-				http.Error(w, "Failed to rename file.", http.StatusInternalServerError)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
-			return
-		} else {
-			// Rename and edit
-			var file *os.File
-			if file, err = os.Create(rename); err != nil {
-				common.ShowError(err)
-				http.Error(w, "Failed to create new file.", http.StatusInternalServerError)
-				return
-			}
-			defer file.Close()
-
-			if _, err = file.Write(*body); err != nil {
-				http.Error(w, "Failed to write to new file.", http.StatusInternalServerError)
-			} else if err = os.Remove(path); err != nil {
-				http.Error(w, "Failed to remove original file.", http.StatusInternalServerError)
-			} else {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-
-			// Show whatever error broke the chain
-			common.ShowError(err)
-		}
-	} else { // Handle update (without rename)
-		if len(*body) == 0 {
-			common.ShowError(errors.New("Tried to update recipe with to empty file."))
-			http.Error(w, "Body is empty.", http.StatusBadRequest)
-			return
-		}
-
-		var file *os.File
-		if err = os.Rename(path, path+".bak"); err != nil {
-			// Backup recipe
-			common.ShowError(err)
-			http.Error(w, "Failed to modify file.", http.StatusInternalServerError)
-			return
-		}
-		defer file.Close()
-
-		if file, err = os.Create(path); err != nil {
-			http.Error(w, "Failed to create new (temp) file.", http.StatusInternalServerError)
-		} else if _, err = file.Write(*body); err != nil {
-			http.Error(w, "Failed to write to file.", http.StatusInternalServerError)
-		} else if err = os.Remove(path + ".bak"); err != nil {
-			http.Error(w, "Failed to remove backup file.", http.StatusInternalServerError)
-		} else {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		// Show whatever error broke the chain
-		common.ShowError(err)
 	}
+
+	w.WriteHeader(http.StatusOK)
 }

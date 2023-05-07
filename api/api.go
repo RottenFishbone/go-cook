@@ -4,6 +4,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -102,6 +103,7 @@ func GetAllRecipeNames() string {
 //
 // This can only read `.cook` files within the recipe directory.
 func GetRecipe(name string) string {
+	// TODO conform to new API style
 	assertConfigLoaded()
 
 	root := config.Get(config.KeyRecipeDir)
@@ -132,16 +134,130 @@ func GetRecipe(name string) string {
 	return string(jsonStr)
 }
 
+// Replaces contents of specified recipe with `contents`
+// Recipe is specified as a relative filepath from directory root
+//
+// e.g. "breakfast/eggs_benedict"
+//
+//	Considerations:
+//	- Returns nil on success, otherwise forwards errors.
+//	- Can only affect ".cook" files
+//	- Refuses to write empty files
+func UpdateRecipe(name string, contents *[]byte) error {
+	if len(*contents) == 0 {
+		return errors.New("Cannot update recipe to be empty file.")
+	}
+	assertConfigLoaded()
+	var err error
+
+	// Sanitize input
+	rootDir := config.Get(config.KeyRecipeDir)
+	if name, err = common.SanitizeRelPath(rootDir, name+".cook"); err != nil {
+		return err
+	}
+
+	// Existence check
+	if !common.FileExists(name) {
+		return errors.New("File does not exist.")
+	}
+
+	var file *os.File
+	if err = os.Rename(name, name+".bak"); err != nil {
+		// ^ Backup original
+		return err
+	} else if file, err = os.Create(name); err != nil {
+		// ^ Create new in original's place
+		recoveryErr := os.Rename(name+".bak", name)
+		if recoveryErr != nil {
+			common.ShowError(errors.Join(err, recoveryErr))
+		}
+		return err
+	}
+	defer file.Close()
+	if _, err := file.Write(*contents); err != nil {
+		// ^ Write bytes to new
+		undoErr := os.Remove(name)
+		recoveryErr := os.Rename(name+".bak", name)
+		if undoErr != nil || recoveryErr != nil {
+			common.ShowError(errors.Join(err, undoErr, recoveryErr))
+		}
+		return err
+	}
+
+	// Remove the backup, error is non-fatal
+	if err = os.Remove(name + ".bak"); err != nil {
+		common.ShowError(err)
+	}
+	return nil
+}
+
+// Rename a recipe file using relative filepaths as input.
+//
+// e.g. "breakfast/eggs_benedict" -> "lunch/deluxe_eggs_benedict"
+//
+//	Considerations:
+//	- Returns nil on success, otherwise returns encountered error.
+//	- Only affects ".cook" files within the recipe directory.
+//	- Cleans up empty directories after a rename
+func RenameRecipe(name string, target string) error {
+	assertConfigLoaded()
+	var err error
+
+	// Sanitize both inputs
+	rootDir := config.Get(config.KeyRecipeDir)
+	if name, err = common.SanitizeRelPath(rootDir, name+".cook"); err != nil {
+		return err
+	} else if target, err = common.SanitizeRelPath(rootDir, target+".cook"); err != nil {
+		return err
+	}
+
+	// Existence checks
+	if !common.FileExists(name) {
+		return errors.New("File does not exist.")
+	} else if common.FileExists(target) {
+		// No overwrite
+		return errors.New("Target already exists.")
+	}
+
+	// Ensure target directory exists
+	dir := filepath.Dir(target)
+	if !common.FileExists(filepath.Dir(target)) {
+		if err = os.MkdirAll(dir, os.ModePerm); err != nil {
+			return err
+		}
+	}
+
+	// Finally, we can rename
+	if err = os.Rename(name, target); err != nil {
+		return err
+	}
+
+	// Try to clear empty directories, if the OS didn't
+	oldDir := strings.TrimPrefix(rootDir, filepath.Dir(name))
+	dirs := strings.Split(filepath.ToSlash(oldDir), "/")
+	if len(dirs) > 0 {
+		oldDir = filepath.Join(rootDir, dirs[0])
+	}
+	if common.FileExists(oldDir) {
+		if err = common.CleanupEmptyDir(oldDir); err != nil {
+			common.ShowError(err)
+			return nil // Client can ignore error, its just housekeeping
+		}
+	}
+
+	return nil
+}
+
 // Deletes a recipe based on its relative file path from the recipe root
 // folder as defined in the config file.
-// e.g.
 //
-//	"breakfast/eggs_benedict"
+// e.g. "breakfast/eggs_benedict"
 //
-// # Returns true on success, false on delete
-//
-// This can only delete `.cook` files within the recipe directory.
+//	Considerations:
+//	- Returns true on success, false on delete
+//	- This can only delete `.cook` files within the recipe directory.
 func DeleteRecipe(name string) bool {
+	// TODO conform to new API style
 	assertConfigLoaded()
 
 	root := config.Get(config.KeyRecipeDir)
