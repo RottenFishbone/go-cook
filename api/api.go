@@ -155,7 +155,7 @@ func GetAllRecipeNames() string {
 //
 //		Considerations:
 //		- byte array will be nil on failure
-//	 - This can only read `.cook` files within the recipe directory.
+//	 	- This can only read `.cook` files within the recipe directory.
 func GetRecipeSource(name string) ([]byte, error) {
 	assertConfigLoaded()
 	var err error
@@ -185,7 +185,7 @@ func GetRecipeSource(name string) ([]byte, error) {
 //
 //		Considerations:
 //		- byte array will be nil on failure
-//	 - This can only read `.cook` files within the recipe directory.
+//	 	- This can only read `.cook` files within the recipe directory.
 func GetRecipe(name string) ([]byte, error) {
 	var err error
 	var raw []byte
@@ -326,7 +326,7 @@ func RenameRecipe(name string, target string) error {
 //		Considerations:
 //		- Returns nil on success, forwards error on failure
 //		- This can only delete `.cook` files *within* the recipe directory.
-//	 - Deletes empty parent directories (automatic housekeeping)
+//	 	- Deletes empty parent directories (automatic housekeeping)
 func DeleteRecipe(name string) error {
 	assertConfigLoaded()
 	var err error
