@@ -115,5 +115,8 @@ func handleRecipeByNamePOST(name string, rename string, body *[]byte, w http.Res
 			http.Error(w, errMsg, http.StatusInternalServerError)
 			return
 		}
+	} else if rename == "" {
+		http.Error(w, "Empty recipes are disallowed.", http.StatusBadRequest)
+		return
 	}
 }

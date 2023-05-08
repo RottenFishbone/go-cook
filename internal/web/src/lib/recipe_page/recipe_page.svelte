@@ -62,7 +62,7 @@
     }, 200);
   
     try {
-      if (recipeText == '') { 
+      if (!previewMode) { 
         recipe = await fetchRecipeByName(recipeName);
       } else {
         recipe = await fetchParsedRecipe(recipeText);

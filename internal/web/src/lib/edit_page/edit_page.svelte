@@ -137,7 +137,7 @@
     if (!newFile) {
       if (!textAreaChanged && !titleChanged) { return; }
       let renameParam = titleChanged ? `&rename=${titleInput}` : '';
-      let body = textAreaChanged ? textArea : '';
+			let body = textAreaChanged ? (textArea == '' ? `-- im empty inside ='(` : textArea) : '';
       let reqUrl = `${apiRoot}/recipes/byName?name=${recipeName}${renameParam}`;
       console.log(`req: ${reqUrl}`)
       resp = await fetch(reqUrl, {
