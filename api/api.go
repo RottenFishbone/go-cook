@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"git.sr.ht/~rottenfishbone/go-cook"
 	"git.sr.ht/~rottenfishbone/go-cook/internal/pkg/common"
 	"git.sr.ht/~rottenfishbone/go-cook/pkg/config"
-	"git.sr.ht/~rottenfishbone/go-cook/pkg/recipe"
 )
 
 // Ensures the config file is loaded. Panic on failure.
@@ -21,6 +21,60 @@ import (
 func assertConfigLoaded() {
 	if !config.IsLoaded() {
 		panic("Attempted to read unloaded config")
+	}
+}
+
+// Ensures a passed recipe name is `.cook` (or no ext) and within the
+// recipe's directory.
+func sanitizeRecipeName(path string) (string, error) {
+	var err error
+	rootDir := config.Get(config.KeyRecipeDir)
+
+	// Sanitize extension
+	if path, err = sanitizeExt(path, ".cook"); err != nil {
+		return "", err
+	}
+	// Sanitize relative paths
+	if path, err = sanitizeRelPath(rootDir, path); err != nil {
+		return "", err
+	}
+
+	// Path is now an absolute path with a `.cook` extension
+	return path, nil
+}
+
+// Ensures a relative path is not outside of a specified root directory
+//
+//   - Returns absolute path on success
+//   - Returns empty string and an error if an illegal path is provided
+func sanitizeRelPath(root string, path string) (string, error) {
+	absPath, err := filepath.Abs(filepath.Join(root, path))
+	if err != nil {
+		return "", err
+	}
+
+	if !strings.HasPrefix(absPath, root) {
+		errMsg :=
+			fmt.Sprintf("Relative path escapes root directory:\n%s\n%s", absPath, root)
+		return "", errors.New(errMsg)
+	}
+
+	return absPath, nil
+}
+
+// Ensures a file extension is either `ext` or empty (to which `ext` is added)
+//
+// Returns empty string and an error in every other case
+func sanitizeExt(path string, ext string) (string, error) {
+	curExt := filepath.Ext(path)
+
+	if curExt == "" {
+		return path + ext, nil
+	} else if curExt == ext {
+		return path, nil
+	} else {
+		errMsg := fmt.Sprintf("Illegal file extension: %s", curExt)
+		return "", errors.New(errMsg)
 	}
 }
 
@@ -95,43 +149,57 @@ func GetAllRecipeNames() string {
 	return string(jsonBytes)
 }
 
-// Returns recipe data by the specified filepath (without extension)
+// Returns raw byte data of recipe at provided relative filepath.
 //
-// `name` is a relative filepath from recipe root e.g.
+// e.g. "breakfast/eggs_benedict"
 //
-//	"breakfast/eggs_benedict"
-//
-// This can only read `.cook` files within the recipe directory.
-func GetRecipe(name string) string {
-	// TODO conform to new API style
+//		Considerations:
+//		- byte array will be nil on failure
+//	 - This can only read `.cook` files within the recipe directory.
+func GetRecipeSource(name string) ([]byte, error) {
 	assertConfigLoaded()
+	var err error
+	var path string
 
-	root := config.Get(config.KeyRecipeDir)
-	fullpath := filepath.Join(root, name+".cook")
-
-	// Expand relative filepaths to prevent reading outside of root
-	fullpath, err := filepath.Abs(fullpath)
-	if err != nil {
-		common.ShowError(err)
-		return ""
-	}
-	// Ensure expanded path is within root
-	if !strings.HasPrefix(fullpath, root) {
-		os.Stderr.WriteString("Error: Attempted to access outside data directory\n")
-		return ""
+	// Sanitize inputs
+	if path, err = sanitizeRecipeName(name); err != nil {
+		return nil, err
 	}
 
-	if !common.FileExists(fullpath) {
-		return ""
+	// Existence check
+	if !common.FileExists(path) {
+		return nil, errors.New("File not found.")
 	}
 
-	r := recipe.LoadFromFile(fullpath)
-	r.Name = name
-	jsonStr, err := json.Marshal(*r)
-	if err != nil {
-		common.ShowError(err)
+	var raw []byte
+	if raw, err = os.ReadFile(path); err != nil {
+		return nil, err
 	}
-	return string(jsonStr)
+
+	return raw, nil
+}
+
+// Returns parsed and json econded recipe at provided relative filepath.
+//
+// e.g. "breakfast/eggs_benedict"
+//
+//		Considerations:
+//		- byte array will be nil on failure
+//	 - This can only read `.cook` files within the recipe directory.
+func GetRecipe(name string) ([]byte, error) {
+	var err error
+	var raw []byte
+
+	if raw, err = GetRecipeSource(name); err != nil {
+		return nil, err
+	}
+
+	r := cook.ParseRecipe(name, &raw)
+	var jsonData []byte
+	if jsonData, err = json.Marshal(&r); err != nil {
+		return nil, err
+	}
+	return jsonData, nil
 }
 
 // Replaces contents of specified recipe with `contents`
@@ -150,9 +218,8 @@ func UpdateRecipe(name string, contents *[]byte) error {
 	assertConfigLoaded()
 	var err error
 
-	// Sanitize input
-	rootDir := config.Get(config.KeyRecipeDir)
-	if name, err = common.SanitizeRelPath(rootDir, name+".cook"); err != nil {
+	// Sanitize inputs
+	if name, err = sanitizeRecipeName(name); err != nil {
 		return err
 	}
 
@@ -205,14 +272,11 @@ func UpdateRecipe(name string, contents *[]byte) error {
 func RenameRecipe(name string, target string) error {
 	assertConfigLoaded()
 	var err error
-	// Don't let evil users have spaces!
-	target = strings.ReplaceAll(target, " ", "_")
 
-	// Sanitize both inputs
-	rootDir := config.Get(config.KeyRecipeDir)
-	if name, err = common.SanitizeRelPath(rootDir, name+".cook"); err != nil {
+	// Sanitize inputs
+	if name, err = sanitizeRecipeName(name); err != nil {
 		return err
-	} else if target, err = common.SanitizeRelPath(rootDir, target+".cook"); err != nil {
+	} else if target, err = sanitizeRecipeName(target); err != nil {
 		return err
 	}
 
@@ -238,6 +302,7 @@ func RenameRecipe(name string, target string) error {
 	}
 
 	// Try to clear empty directories, if the OS didn't
+	rootDir := config.Get(config.KeyRecipeDir)
 	oldDir := strings.TrimPrefix(rootDir, filepath.Dir(name))
 	dirs := strings.Split(filepath.ToSlash(oldDir), "/")
 	if len(dirs) > 0 {
@@ -258,52 +323,51 @@ func RenameRecipe(name string, target string) error {
 //
 // e.g. "breakfast/eggs_benedict"
 //
-//	Considerations:
-//	- Returns true on success, false on delete
-//	- This can only delete `.cook` files within the recipe directory.
-func DeleteRecipe(name string) bool {
-	// TODO conform to new API style
+//		Considerations:
+//		- Returns nil on success, forwards error on failure
+//		- This can only delete `.cook` files *within* the recipe directory.
+//	 - Deletes empty parent directories (automatic housekeeping)
+func DeleteRecipe(name string) error {
 	assertConfigLoaded()
+	var err error
+	var path string
 
-	root := config.Get(config.KeyRecipeDir)
-	fullpath := filepath.Join(root, name+".cook")
-
-	// Expand relative filepaths to prevent reading outside of root
-	fullpath, err := filepath.Abs(fullpath)
-	if err != nil {
-		common.ShowError(err)
-		return false
-	}
-	// Ensure expanded path is within root
-	if !strings.HasPrefix(fullpath, root) {
-		os.Stderr.WriteString("Error: Attempted to access outside data directory\n")
-		return false
+	// Sanitize inputs
+	if path, err = sanitizeRecipeName(name); err != nil {
+		return err
 	}
 
-	if !common.FileExists(fullpath) {
-		return false
+	// Existence check
+	if !common.FileExists(path) {
+		errMsg := fmt.Sprintf("File not found: %s", name+".cook")
+		return errors.New(errMsg)
 	}
 
 	// Delete the file
-	err = os.Remove(fullpath)
-	if err != nil {
-		common.ShowError(err)
-		return false
+	if err = os.Remove(path); err != nil {
+		return err
 	}
 
-	return true
+	// Try to clear empty directories, if the OS didn't
+	rootDir := config.Get(config.KeyRecipeDir)
+	oldDir := strings.TrimPrefix(rootDir, filepath.Dir(name))
+	dirs := strings.Split(filepath.ToSlash(oldDir), "/")
+	if len(dirs) > 0 {
+		oldDir = filepath.Join(rootDir, dirs[0])
+	}
+	if common.FileExists(oldDir) {
+		if err = common.CleanupEmptyDir(oldDir); err != nil {
+			common.ShowError(err)
+			return nil // Client can ignore error, its just housekeeping
+		}
+	}
+	return nil
 }
 
 // TODO
 // Returns a JSON list containing the `n`th page of recipes, using the
 // provided page size.
 func GetRecipesPage(n int, size int) string {
-	return ""
-}
-
-// TODO
-// Returns a JSON list containing all recipes.
-func GetAllRecipes() string {
 	return ""
 }
 

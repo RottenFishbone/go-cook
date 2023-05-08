@@ -11,12 +11,23 @@
 
   let titleInput = recipeName;
   $: titleChanged = !newRecipeMode && titleInput != recipeName;
+	$: titleIllegal = titleInput == "";
+	
+	let titleInputClass = '';
+	$: if (titleIllegal) { 
+		titleInputClass = 'input-error'; 
+	} else if (titleChanged) {
+		titleInputClass = 'input-info';
+	} else {
+		titleInputClass = '';
+	}
 
 
   let failedLoad = false;     // Flag: inability to fetch recipe file
   let mounted = false;        // Flag: component has been loaded for a time
   let newRecipeMode = false;  // Flag: no recipe will be loaded on mount
-  
+	let recipeFetched = false; 	// Flag: recipe has been loaded (even if empty)
+
   // Code run once this component is mounted completely
   onMount(async ()=>{
     setTimeout(()=>{
@@ -26,7 +37,8 @@
     // Attempt to fetch the relevant file based on the passed recipeName
     if (recipeName != ""){
       try {
-        recipeText = await fetchRecipeFile(recipeName);
+				recipeText = await fetchRecipeFile(recipeName);
+				recipeFetched = true;
       } catch (err) {
         failedLoad = true;
         throw err;
@@ -47,27 +59,77 @@
     }
   }
 
-  enum TabState {
-    Source,
-    Preview,
-  }
-  let tabState = TabState.Source;
-
+	// Tab handling
   function sourceTabClicked() {
     if (tabState == TabState.Source) { return; }
     tabState = TabState.Source;
     
   }
+	// Tab handling
   function previewTabClicked(){
     if (tabState == TabState.Preview) { return; }
     tabState = TabState.Preview;
   }
+	enum TabState {
+    Source,
+    Preview,
+  }
+	let tabState = TabState.Source;
 
 
-  // Pushes state change to API server
+	// Handler for saving changes made since page load
   // newFile: boolean - Determines if the changes should create a new recipe 
   //                    update an existing one
-  async function saveChanges(newFile: boolean) {
+	function saveClick(newFile: boolean) {
+		if (titleIllegal) {
+      // Set saving to failure state
+      saving = SaveState.Err;
+      // Reset after a second
+      setTimeout(() =>{
+        saving = SaveState.Default;
+			}, 2000);
+			return;
+		}
+
+    saving = SaveState.Saving; // disables save button
+    
+    saveChanges(newFile).then(()=>{
+      // Set saving to confirmation state
+      saving = SaveState.Saved; 
+      // Reset after a second
+      setTimeout(() =>{
+        saving = SaveState.Default;
+      }, 1000);
+
+      if (titleChanged) {
+        // "Move" this page's state to newly created recipe
+        recipeName = titleInput;
+        newRecipeMode = false;		// Recipe definitely exists now
+      }
+    }).catch(err=>{
+      // Set saving to failure state
+      saving = SaveState.Err;
+      // Reset after a second
+      setTimeout(() =>{
+        saving = SaveState.Default;
+      }, 2000);
+      console.error(err);
+    }); 
+    return;
+  }
+
+  enum SaveState {
+    Default,
+    Saving,
+    Saved,
+    Err,
+  }
+	let saving = SaveState.Default;
+
+	// Pushes state change to API server
+  // newFile: boolean - Determines if the changes should create a new recipe 
+  //                    update an existing one
+	async function saveChanges(newFile: boolean) {
     let resp: Response;
     let textAreaChanged = textArea != recipeText;
 
@@ -97,42 +159,7 @@
     }
   }
 
-  enum SaveState {
-    Default,
-    Saving,
-    Saved,
-    Err,
-  }
-  let saving = SaveState.Default;
 
-  function saveClick(newFile: boolean) {
-    saving = SaveState.Saving; // disables save button
-    
-    // Push changes to server
-    saveChanges(newFile).then(()=>{
-      // Set saving to confirmation state
-      saving = SaveState.Saved; 
-      // Reset after a second
-      setTimeout(() =>{
-        saving = SaveState.Default;
-      }, 1000);
-
-      if (titleChanged) {
-        // "Move" to newly created recipe
-        recipeName = titleInput;
-        newRecipeMode = false;
-      }
-    }).catch(err=>{
-      // Set saving to failure state
-      saving = SaveState.Err;
-      // Reset after a second
-      setTimeout(() =>{
-        saving = SaveState.Default;
-      }, 2000);
-      console.error(err);
-    }); 
-    return;
-  }
 
   // A callback to be used alongside an svg `use:` directive
   // Resets the animations current time to 0 on mounting to DOM
@@ -141,19 +168,25 @@
   }
 
 </script>
-{#if recipeText}
+{#if recipeFetched}
   <div class="mx-auto max-w-[66rem]">
     <!-- Title -->
-    <div class="form-control w-full">
+		<div class="form-control w-full">
       <label class={`label ${!titleChanged ? 'opacity-[0.01]' : ''}`}>
-        <span class="label-text-alt">recipe will be renamed on save</span>
-      </label>
+				<span class="label-text-alt">
+					{#if !titleIllegal}
+						recipe will be renamed on save
+					{:else if titleInput == ""}
+						title cannot be empty
+					{:else}
+						invalid title
+					{/if}
+				</span>
+			</label>
       <input type="text" bind:value={titleInput} class={`
-           input mb-5 w-full lower-z
-             ${!titleChanged ? '' : 'input-info'}`}/>
+						 input mb-5 w-full lower-z ${titleInputClass}`}/>
+		</div>
 
-
-    </div>
     <!-- Tab buttons -->
     <div class="tabs tabs-boxed bg-base-100">
       <button class={`tab tab-bordered ${tabState == TabState.Source ? 'tab-active' : ''}`} 
@@ -224,7 +257,7 @@
 <!-- Loading spinner -->
 {:else if !failedLoad}
   <div class={`flex flex-col justify-center mx-auto max-w-md transition-opacity duration-750 ${mounted ? '' : 'min-h-screen opacity-0'}`}>
-    <div class="text-xl mx-auto my-5">Fetching recipes...</div>
+    <div class="text-xl mx-auto my-5">Fetching recipe source...</div>
     <div class="btn btn-circle btn-xl btn-disabled mx-auto loading btn-primary"></div>
   </div>
 {:else}

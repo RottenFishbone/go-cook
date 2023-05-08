@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"path/filepath"
+	"strings"
 
 	"git.sr.ht/~rottenfishbone/go-cook/api"
-	"git.sr.ht/~rottenfishbone/go-cook/pkg/config"
 )
 
 // Handles requests to get/change individual recipes via the `name` URL parameter
@@ -20,6 +18,8 @@ import (
 //     POST body can be left blank to simply rename (no changes)]
 //   - PUT: add new recipe (fails on overwrite, use POST to overwrite) (UNIMPL.)
 func apiRecipeByName(w http.ResponseWriter, r *http.Request) {
+	var err error
+
 	// Pull the name from the request
 	name := r.URL.Query().Get("name")
 	if name == "" {
@@ -30,7 +30,6 @@ func apiRecipeByName(w http.ResponseWriter, r *http.Request) {
 	// Read the body for relevant methods
 	var body []byte
 	if r.Method == http.MethodPost || r.Method == http.MethodPut {
-		var err error
 		if body, err = ioutil.ReadAll(r.Body); err != nil {
 			http.Error(w, "Error reading request.", http.StatusBadRequest)
 			return
@@ -50,10 +49,9 @@ func apiRecipeByName(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		handleRecipeByNamePUT(name, &body, w)
 	case http.MethodDelete:
-		if api.DeleteRecipe(name) {
-			return
-		} else {
-			http.Error(w, "File not found.", http.StatusNotFound)
+		if err = api.DeleteRecipe(name); err != nil {
+			errMsg := fmt.Sprintf("Failed to delete: %s", err)
+			http.Error(w, errMsg, http.StatusInternalServerError)
 			return
 		}
 	default:
@@ -64,23 +62,29 @@ func apiRecipeByName(w http.ResponseWriter, r *http.Request) {
 
 // Helper function to hangleGET requests for endpoint `recipes/byName`
 func handleRecipeByNameGET(name string, raw string, w http.ResponseWriter) {
+	var err error
 	var recipeData []byte
+
+	// Validate `raw` param
 	if raw != "" && raw != "true" && raw != "false" { // Can only have 1 of 3 vals
 		http.Error(w, "Malformed Query, invalid `raw` parameter.", http.StatusUnprocessableEntity)
 		return
 	}
+
+	// Fetch the relevant bytedata
 	if raw != "true" {
-		recipeData = []byte(api.GetRecipe(name))
+		if recipeData, err = api.GetRecipe(name); err != nil {
+			http.Error(w, "Failed to load recipe file.", http.StatusInternalServerError)
+			return
+		}
 	} else {
-		path := filepath.Join(config.Get(config.KeyRecipeDir), name+".cook")
-		recipeData, _ = os.ReadFile(path)
+		if recipeData, err = api.GetRecipeSource(name); err != nil {
+			http.Error(w, "Failed to load recipe file.", http.StatusInternalServerError)
+			return
+		}
 	}
-	if recipeData != nil && len(recipeData) > 0 {
-		w.Write(recipeData)
-	} else {
-		http.Error(w, "File not found.", http.StatusNotFound)
-		return
-	}
+
+	w.Write(recipeData)
 }
 
 // Helper function to handle PUT requests for endpoint `recipes/byName`
@@ -95,6 +99,7 @@ func handleRecipeByNamePOST(name string, rename string, body *[]byte, w http.Res
 
 	// If rename is defined, rename the recipe file and set name to rename
 	if rename != "" {
+		rename = strings.ReplaceAll(rename, " ", "_")
 		if err = api.RenameRecipe(name, rename); err != nil {
 			errMsg := fmt.Sprintf("Failed to rename: %s", err)
 			http.Error(w, errMsg, http.StatusInternalServerError)
