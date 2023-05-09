@@ -2,17 +2,7 @@
 This project aims to be a reimplementation, and eventually extension, of the original [CooklangCLI](https://github.com/cooklang/CookCLI), written in Go.  
 
 The root package provides the parser and the requisite types under the package name `cook`. 
-
-I will be maintaing a project structure that allows for module imports from `pkg.dev.go` to enable 
-Cooklang utilities such as parsing, printing and creation, as a library.
-
-### Motivation
-The concept of cooklang has intrigued me and everyone I've described it to. However, I found the 
-existing tooling fell short in some aspects (for my use case) and, additionally, was written in 
-Swift; which is described as the creator as a cross-platform-misstep. As such, I figured a 
-great launch point for learning Golang was to reimplement it in a way that would better suit my 
-idea for what it can be (thinking lightweight Grocy). With that said, I hope to create a modular, 
-easy to use system that is agnostic to the existing cooklang ecosystem.
+Thus, despite the scope of the project, importing the root will provide a lightweight cook parsing library.
 
 -------
 
@@ -20,18 +10,20 @@ easy to use system that is agnostic to the existing cooklang ecosystem.
 At present, the parser works and passes all canonical tests listed 
 [here](https://github.com/cooklang/spec/tree/fa9bc51515b3317da434cb2b5a4a6ac12257e60b/tests). 
 
-The CLI provides a read function to output stored recipes to terminal.
+The CLI provides basic recipe reading as well as access to a webserver and an API server.
 
-##### In progress
- - CLI
-    - [x] `cook init`
-    - [x] `cook read`
-    - [ ] `cook server`
-    - [ ] `cook shopping list`
+(Implemented) commands are as follows
+```
+  help        Help about any command
+  init        Creates the default config file.
+  read        Parses a recipe file and pretty prints it to stdout
+  server      Hosts a local webserver to view/manage recipes.
+```
 
-##### Planned
- - Language Extensions (Images, Shopping List, Parse comments)
- - Shopping List Parser 
+Most focus so far has been on making a usable web interface. While unfinished, it presently
+can perform any action required to manage or view a recipe directory.
+
+This functionality will be extended to the CLI once necessary components are finished.
 
 ### Compilation 
 To use the libraries, you can simply run `go build` as needed. 
