@@ -18,9 +18,9 @@ import (
 
 // The manifest of each API endpoint mapped to its handler
 var apiHandlerFuncs = map[string]func(http.ResponseWriter, *http.Request){
-	"recipes/parse":  apiRecipeParse,
-	"recipes/names":  apiRecipeNames,
-	"recipes/byName": apiRecipeByName, // `by_name.go`
+	"recipes/parse": apiRecipeParse,
+	"recipes/names": apiRecipeNames,
+	"recipes/":      apiRecipe,
 }
 
 func Start(port int, onlyApi bool) {
@@ -28,10 +28,12 @@ func Start(port int, onlyApi bool) {
 		panic("Attempted to start server with invalid port")
 	}
 
+	// Iterate over handler map and add to server
 	for k, v := range apiHandlerFuncs {
 		http.HandleFunc("/api/0/"+k, v)
 	}
 
+	// Host webserver, if requested
 	if !onlyApi {
 		// Ensure the webserver was correctly embedded at compile time
 		entries, _ := fs.ReadDir(web.WebDist, "dist")
@@ -78,6 +80,18 @@ func apiRecipeParse(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		common.ShowError(err)
 	}
+}
+
+// Handles request to the recipes root endpoint
+func apiRecipe(w http.ResponseWriter, r *http.Request) {
+	// Pull the name from the request
+	name := r.URL.Query().Get("name")
+	if name == "" {
+		http.Error(w, "Malformed Query, missing `name` parameter.", http.StatusUnprocessableEntity)
+		return
+	}
+
+	apiRecipeByName(name, w, r)
 }
 
 // Handles requests for recipe name lists (these are preferred to full recipes for lists).

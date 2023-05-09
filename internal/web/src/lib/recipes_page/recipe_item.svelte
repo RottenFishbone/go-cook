@@ -85,7 +85,7 @@
     <ul tabindex="-1" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
       <!-- `Edit` button -->
       <li class="my-1">
-				<label tabindex="0" class="upper-z justify-center" on:click={editClick}>
+				<label tabindex="0" class="btn btn-outline justify-center" on:click={editClick}>
           Edit Recipe
         </label>
       </li>

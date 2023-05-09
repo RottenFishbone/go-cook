@@ -318,6 +318,42 @@ func RenameRecipe(name string, target string) error {
 	return nil
 }
 
+// Creates a *new* recipe using the provided relative filepath.
+//
+// e.g. "breakfast/eggs_benedict"
+//
+//	Considerations:
+//	- Returns nil on success, forwards error on failure
+//	- Overwrites will return an error
+//	- This can only create `.cook` files *within* the recipe directory.
+func CreateRecipe(name string, contents *[]byte) error {
+	var err error
+	var file *os.File
+
+	// Sanitize inputs
+	if name, err = sanitizeRecipeName(name); err != nil {
+		return err
+	}
+
+	// Prevent Overwrite
+	if common.FileExists(name) {
+		return errors.New("File already exists.")
+	}
+
+	// Create the new recipe file
+	if file, err = os.Create(name); err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Populate with contents
+	if _, err := file.Write(*contents); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Deletes a recipe based on its relative file path from the recipe root
 // folder as defined in the config file.
 //

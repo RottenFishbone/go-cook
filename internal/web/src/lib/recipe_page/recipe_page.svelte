@@ -31,7 +31,7 @@
 
 	// Fetches a recipe as JSON (by name)
   async function fetchRecipeByName(name: string) {
-    const resp = await fetch(`${apiRoot}/recipes/byName?name=${name}`);
+    const resp = await fetch(`${apiRoot}/recipes/?name=${name}`);
     if (resp.ok){
       return resp.json()
     } else {

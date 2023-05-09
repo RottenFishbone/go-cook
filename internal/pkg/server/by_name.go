@@ -17,15 +17,8 @@ import (
 //     [param `rename=<string>` will move the recipe to the passed string.
 //     POST body can be left blank to simply rename (no changes)]
 //   - PUT: add new recipe (fails on overwrite, use POST to overwrite) (UNIMPL.)
-func apiRecipeByName(w http.ResponseWriter, r *http.Request) {
+func apiRecipeByName(name string, w http.ResponseWriter, r *http.Request) {
 	var err error
-
-	// Pull the name from the request
-	name := r.URL.Query().Get("name")
-	if name == "" {
-		http.Error(w, "Malformed Query, missing `name` parameter.", http.StatusUnprocessableEntity)
-		return
-	}
 
 	// Read the body for relevant methods
 	var body []byte
@@ -47,7 +40,10 @@ func apiRecipeByName(w http.ResponseWriter, r *http.Request) {
 		rename := r.URL.Query().Get("rename")
 		handleRecipeByNamePOST(name, rename, &body, w)
 	case http.MethodPut:
-		handleRecipeByNamePUT(name, &body, w)
+		if err = api.CreateRecipe(name, &body); err != nil {
+			http.Error(w, "Failed to create file.", http.StatusInternalServerError)
+			return
+		}
 	case http.MethodDelete:
 		if err = api.DeleteRecipe(name); err != nil {
 			errMsg := fmt.Sprintf("Failed to delete: %s", err)
@@ -85,11 +81,6 @@ func handleRecipeByNameGET(name string, raw string, w http.ResponseWriter) {
 	}
 
 	w.Write(recipeData)
-}
-
-// Helper function to handle PUT requests for endpoint `recipes/byName`
-func handleRecipeByNamePUT(name string, body *[]byte, w http.ResponseWriter) {
-	// TODO Implement
 }
 
 // Helper function to handle POST requests for endpoint `recipes/byName`

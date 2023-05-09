@@ -4,19 +4,19 @@
   import { apiRoot } from '../common';
   import RecipePage from '../recipe_page/recipe_page.svelte';
 
-  export let recipeName: string = "";
+  export let recipeName: string = '';
   
-  let recipeText: string = "";
+  let recipeText: string = '';
   $: textArea = recipeText
 
   let titleInput = recipeName;
-  $: titleChanged = !newRecipeMode && titleInput != recipeName;
+  $: titleChanged = titleInput != recipeName;
 	$: titleIllegal = titleInput == "";
 	
 	let titleInputClass = '';
 	$: if (titleIllegal) { 
 		titleInputClass = 'input-error'; 
-	} else if (titleChanged) {
+	} else if (titleChanged && !newRecipeMode) {
 		titleInputClass = 'input-info';
 	} else {
 		titleInputClass = '';
@@ -25,7 +25,7 @@
 
   let failedLoad = false;     // Flag: inability to fetch recipe file
   let mounted = false;        // Flag: component has been loaded for a time
-  let newRecipeMode = false;  // Flag: no recipe will be loaded on mount
+  $: newRecipeMode = false;  	// Flag: no recipe will be loaded on mount
 	let recipeFetched = false; 	// Flag: recipe has been loaded (even if empty)
 
   // Code run once this component is mounted completely
@@ -35,7 +35,7 @@
     }, 200);
 
     // Attempt to fetch the relevant file based on the passed recipeName
-    if (recipeName != ""){
+    if (recipeName != ''){
       try {
 				recipeText = await fetchRecipeFile(recipeName);
 				recipeFetched = true;
@@ -45,7 +45,8 @@
       }
     } else {
       // Otherwise we are editing an non-existant recipe 
-      newRecipeMode = true;
+			newRecipeMode = true;
+			recipeFetched = true;
     }
   });
 
@@ -103,8 +104,9 @@
 
       if (titleChanged) {
         // "Move" this page's state to newly created recipe
-        recipeName = titleInput;
-        newRecipeMode = false;		// Recipe definitely exists now
+				recipeName = titleInput;
+				recipeText = textArea;
+				newRecipeMode = false;		// Recipe definitely exists now
       }
     }).catch(err=>{
       // Set saving to failure state
@@ -132,13 +134,14 @@
 	async function saveChanges(newFile: boolean) {
     let resp: Response;
     let textAreaChanged = textArea != recipeText;
+		let body = textAreaChanged || newRecipeMode ? 
+				(textArea == '' ? `-- im empty inside ='(` : textArea) : '';
 
     // Handle "Save Updates"
     if (!newFile) {
       if (!textAreaChanged && !titleChanged) { return; }
       let renameParam = titleChanged ? `&rename=${titleInput}` : '';
-			let body = textAreaChanged ? (textArea == '' ? `-- im empty inside ='(` : textArea) : '';
-      let reqUrl = `${apiRoot}/recipes/byName?name=${recipeName}${renameParam}`;
+      let reqUrl = `${apiRoot}/recipes/?name=${recipeName}${renameParam}`;
       console.log(`req: ${reqUrl}`)
       resp = await fetch(reqUrl, {
         method: 'POST',
@@ -146,9 +149,9 @@
       });
     } else {
       // Handle "Save as New"
-      resp = await fetch(`${apiRoot}/recpies/byName?name=${titleInput}`, {
+      resp = await fetch(`${apiRoot}/recipes/?name=${titleInput}`, {
         method: 'PUT',
-        body: textArea,
+        body: body,
       });
     }
 
@@ -172,14 +175,16 @@
   <div class="mx-auto max-w-[66rem]">
     <!-- Title -->
 		<div class="form-control w-full">
-      <label class={`label ${!titleChanged ? 'opacity-[0.01]' : ''}`}>
+			<label class={`label ${titleChanged || recipeName == '' ? '' : 'opacity-[0.01]'}`}>
 				<span class="label-text-alt">
-					{#if !titleIllegal}
+					{#if !titleIllegal && !newRecipeMode}
 						recipe will be renamed on save
-					{:else if titleInput == ""}
+					{:else if titleInput == ''}
 						title cannot be empty
-					{:else}
+					{:else if !newRecipeMode}
 						invalid title
+					{:else}
+						<br/><!-- Placeholder to prevent removal from DOM -->
 					{/if}
 				</span>
 			</label>
@@ -249,7 +254,7 @@
 
     <!-- Preview -->
     {#if tabState == TabState.Preview }
-			<RecipePage recipeName={recipeName} recipeText={textArea} previewMode={true} />
+			<RecipePage recipeName={titleInput} recipeText={textArea} previewMode={true} />
     {/if}
   </div>
 
