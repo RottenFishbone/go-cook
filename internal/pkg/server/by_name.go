@@ -69,7 +69,7 @@ func handleRecipeByNameGET(name string, raw string, w http.ResponseWriter) {
 
 	// Fetch the relevant bytedata
 	if raw != "true" {
-		if recipeData, err = api.GetRecipe(name); err != nil {
+		if recipeData, err = api.GetRecipeJSON(name); err != nil {
 			http.Error(w, "Failed to load recipe file.", http.StatusInternalServerError)
 			return
 		}

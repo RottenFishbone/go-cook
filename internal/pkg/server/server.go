@@ -95,42 +95,62 @@ func apiRecipe(w http.ResponseWriter, r *http.Request) {
 }
 
 // Handles requests for recipe name lists (these are preferred to full recipes for lists).
+//
+// Only accepts GET requests.
+//
+// params:
+//   - q <query> -- searches recipes
+//   - page <uint> -- `n`th page of size `count`
+//   - count <uint> -- size of each page
 func apiRecipeNames(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var names []byte
+
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
 
-	// Pull the name from the request
-	page := r.URL.Query().Get("page")
+	// Grab URL query
+	q := r.URL.Query().Get("q")
 	count := r.URL.Query().Get("count")
-	pageNum, pErr := strconv.ParseUint(page, 10, 64)
-	countNum, cErr := strconv.ParseUint(count, 10, 64)
-
 	if count == "" {
 		http.Error(w, "Malformed Query, missing `count` parameter.",
 			http.StatusUnprocessableEntity)
 		return
-	} else if countNum == 0 {
-		fmt.Fprintf(w, "%s", api.GetAllRecipeNames())
-		return
-	} else if page == "" {
+	}
+
+	page := r.URL.Query().Get("page")
+	if page == "" {
 		http.Error(w, "Malformed Query, missing `page` parameter.",
 			http.StatusUnprocessableEntity)
 		return
-	} else {
-		if pErr != nil {
-			http.Error(w, "Malformed Query, failed to parse `page` parameter.",
-				http.StatusUnprocessableEntity)
-			return
-		}
-		if cErr != nil {
-			http.Error(w, "Malformed Query, failed to parse `count` parameter.",
-				http.StatusUnprocessableEntity)
-			return
-		}
-
-		// TODO handle paginated requests
-		var _ = pageNum
 	}
+
+	// Parse into numbers
+	var pageNum, countNum uint64
+	if pageNum, err = strconv.ParseUint(page, 10, 64); err != nil {
+		http.Error(w, "Malformed Query, failed to parse `page` parameter.",
+			http.StatusUnprocessableEntity)
+		return
+	}
+	if countNum, err = strconv.ParseUint(count, 10, 64); err != nil {
+		http.Error(w, "Malformed Query, failed to parse `count` parameter.",
+			http.StatusUnprocessableEntity)
+		return
+	}
+
+	if q == "" {
+		if names, err = api.GetRecipeNamesPagedJSON(pageNum, countNum); err != nil {
+			http.Error(w, "Failed to fetch page.", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		if names, err = api.SearchRecipeNamesPagedJSON(q, pageNum, countNum); err != nil {
+			http.Error(w, "Failed to fetch page.", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.Write(names)
 }

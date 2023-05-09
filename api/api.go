@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,6 +44,21 @@ func sanitizeRecipeName(path string) (string, error) {
 	return path, nil
 }
 
+// Slices array using dynamically defined page sizes
+func page[T any](arr []T, page uint64, size uint64) []T {
+	start := page * size
+	end := page*size + size
+	cnt := uint64(len(arr))
+
+	if cnt < start {
+		return make([]T, 0)
+	} else if cnt < end {
+		return arr[start:]
+	} else {
+		return arr[start:end]
+	}
+}
+
 // Ensures a relative path is not outside of a specified root directory
 //
 //   - Returns absolute path on success
@@ -78,11 +94,12 @@ func sanitizeExt(path string, ext string) (string, error) {
 	}
 }
 
-// Collects the name of each subdirectory (and root) of the recipes directory
+// Collects the name of each (nested) subdirectory (and root) of the recipes directory
 // as defined in the config.
 func collectRecipeFolders() []string {
 	assertConfigLoaded()
 
+	// Use a stack to descend into possibly subfolders
 	dirs := make([]string, 0)
 	dirStack := make([]string, 0)
 	dirStack = append(dirStack, config.Get(config.KeyRecipeDir))
@@ -112,21 +129,23 @@ func collectRecipeFolders() []string {
 	return dirs
 }
 
-// Returns a JSON list of all recipe names (descended recursively) in the Recipes
-// folder, as defined in the config.
+// Gathers all .cook recipes within the recipe root (possibly nested) and returns
+// each as a relative filepath from recipe root.
 //
-// Recipes are represented as a path relative to the recipes root.
-func GetAllRecipeNames() string {
+// Returns (nil, err) on failure
+func GetAllRecipeNames() ([]string, error) {
+	//TODO use watcher to cache results and update on changes
 	assertConfigLoaded()
-	root := config.Get(config.KeyRecipeDir)
+	var err error
 
+	// Scan every (sub)directory in the recipe dir for .cook files
+	root := config.Get(config.KeyRecipeDir)
 	recipes := make([]string, 0)
 	recipeDirs := collectRecipeFolders()
 	for _, dir := range recipeDirs {
-		entries, err := os.ReadDir(dir)
-		if err != nil {
-			errstr := fmt.Sprintf("Error: %v\n", err.Error())
-			os.Stderr.WriteString(errstr)
+		var entries []fs.DirEntry
+		if entries, err = os.ReadDir(dir); err != nil {
+			return nil, err
 		}
 
 		for _, entry := range entries {
@@ -134,19 +153,34 @@ func GetAllRecipeNames() string {
 				continue
 			}
 
+			// Rebuild the relative path of the recipe (from recipe root)
 			recipeName := strings.TrimSuffix(
 				filepath.Join(dir, entry.Name())[len(root)+1:],
 				".cook")
 			recipes = append(recipes, recipeName)
 		}
 	}
-	jsonBytes, err := json.Marshal(recipes)
-	if err != nil {
-		errstr := fmt.Sprintf("Error: %v\n", err.Error())
-		os.Stderr.WriteString(errstr)
+
+	return recipes, nil
+}
+
+// Returns a JSON list of all recipe names (descended recursively) in the Recipes
+// folder, as defined in the config.
+//
+// Recipes are represented as a path relative to the recipes root.
+func GetAllRecipeNamesJSON() ([]byte, error) {
+	var err error
+	var recipes []string
+	if recipes, err = GetAllRecipeNames(); err != nil {
+		return nil, err
 	}
 
-	return string(jsonBytes)
+	var jsonBytes []byte
+	if jsonBytes, err = json.Marshal(recipes); err != nil {
+		return nil, err
+	}
+
+	return jsonBytes, nil
 }
 
 // Returns raw byte data of recipe at provided relative filepath.
@@ -186,7 +220,7 @@ func GetRecipeSource(name string) ([]byte, error) {
 //		Considerations:
 //		- byte array will be nil on failure
 //	 	- This can only read `.cook` files within the recipe directory.
-func GetRecipe(name string) ([]byte, error) {
+func GetRecipeJSON(name string) ([]byte, error) {
 	var err error
 	var raw []byte
 
@@ -400,16 +434,148 @@ func DeleteRecipe(name string) error {
 	return nil
 }
 
-// TODO
-// Returns a JSON list containing the `n`th page of recipes, using the
+// Builds a JSON list containing the `n`th page of recipes, using the
 // provided page size.
-func GetRecipesPage(n int, size int) string {
-	return ""
+//
+// # Returns (jsonBytes, nil) on success, (nil, err) on failure
+//
+// Out of bounds requests will return an empty array.
+func GetRecipeNamesPagedJSON(n uint64, size uint64) ([]byte, error) {
+	var err error
+	var recipes []string
+
+	if recipes, err = GetAllRecipeNames(); err != nil {
+		return nil, err
+	}
+	recipes = page(recipes, n, size)
+
+	var jsonBytes []byte
+	if jsonBytes, err = json.Marshal(recipes); err != nil {
+		return nil, err
+	}
+
+	return jsonBytes, nil
 }
 
-// TODO
+// Returns a string list containing all recipes with names that match using
+// the provided search pattern.
+//
+// Search patterns are defined as:
+//   - comma delimited terms
+//   - each term is a tag (except for filters)
+//   - directory filters can be written with a colon. e.g. `:breakfast/sweet`
+//
+// each tag defined in the source under the metadata `tag` (comma delimited) are
+// searched for.
+func SearchRecipeNames(query string) ([]string, error) {
+	// TODO optimize entire search system, as this should be fast
+	// TODO in-recipe tags
+	// TODO handle spaces in directory filters
+	assertConfigLoaded()
+	var err error
+	var recipes []string
+	query = strings.ToLower(query)
+	queryTerms := strings.Split(query, ",")
+	terms := make([]string, 0)
+
+	// Find a directory filter (if it exists) and build list of search tags
+	filter := ""
+	for _, term := range queryTerms {
+		term = strings.TrimSpace(term)
+		if term == "" {
+			continue
+		}
+
+		// Take any term that starts with ':' as filter
+		// given duplicates, the last one will be taken as the filter
+		if strings.HasPrefix(term, ":") {
+			filter = term[1:]
+			continue
+		}
+
+		terms = append(terms, term)
+	}
+
+	// Grab the recipe list
+	if recipes, err = GetAllRecipeNames(); err != nil {
+		return nil, err
+	}
+
+	matching := make([]string, 0)
+	for _, rawRecipe := range recipes {
+		// Normalize all recipe names
+		recipe := filepath.ToSlash(strings.ToLower(rawRecipe))
+		// Apply filter
+		if filter != "" {
+			if !strings.HasPrefix(recipe, filter) {
+				continue
+			}
+		}
+
+		// Build a map of tags so we don't have to iterate over it repeatedly
+		recipeChunks := strings.Split(recipe, "/")
+		name := recipeChunks[len(recipeChunks)-1]
+		nameChunks := strings.Split(name, "_")
+		recipeTags := append(recipeChunks, nameChunks...)
+		tagMap := map[string]bool{}
+		for _, tag := range recipeTags {
+			tagMap[tag] = true
+		}
+
+		// Assert all search tags exist on recipe
+		for _, searchTag := range terms {
+			if _, found := tagMap[searchTag]; !found {
+				// Check for partial name match otherwise
+				if !strings.Contains(name, searchTag) {
+					// Skip if no matches can be made
+					goto outerContinue
+				}
+			}
+		}
+		matching = append(matching, rawRecipe)
+	outerContinue:
+	}
+
+	return matching, nil
+}
+
 // Returns a JSON list containing all recipes with names that match using
-// the provided regex pattern.
-func GetRecipesMatching(regexPattern string) string {
-	return ""
+// the provided search pattern.
+//
+// See `SearchRecipeNames()` for details.
+func SearchRecipeNamesJSON(query string) ([]byte, error) {
+	var err error
+	var recipes []string
+
+	if recipes, err = SearchRecipeNames(query); err != nil {
+		return nil, err
+	}
+
+	var jsonBytes []byte
+	if jsonBytes, err = json.Marshal(recipes); err != nil {
+		return nil, err
+	}
+
+	return jsonBytes, nil
+}
+
+// Returns a JSON list containing all recipes with names that match using
+// the provided search pattern.
+//
+// See `SearchRecipeNames` for details
+func SearchRecipeNamesPagedJSON(query string, n uint64, count uint64) ([]byte, error) {
+	var err error
+	var recipes []string
+
+	if recipes, err = SearchRecipeNames(query); err != nil {
+		return nil, err
+	}
+	recipes = page(recipes, n, count)
+
+	var jsonBytes []byte
+	if jsonBytes, err = json.Marshal(recipes); err != nil {
+		return nil, err
+	}
+
+	return jsonBytes, nil
 }

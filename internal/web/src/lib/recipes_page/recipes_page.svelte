@@ -1,18 +1,21 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-	
 	import { apiRoot, State } from '../common';
-
 	import RecipeItem from './recipe_item.svelte';
 
-  // A list of recipe names (with their relative filepaths)
-  let recipes: [string];
+	export let pageSize: number = 10;
+	export let page: number = 0;
+	
+	const dispatch = createEventDispatcher();
 
-  const dispatch = createEventDispatcher();
-
+	$: recipes = []
+	let searchText = "";
+	$: searchText, searchChange();
+	
   // Loads the recipe names from the API server
-  async function fetchRecipeList() {
-		const resp = await fetch(`${apiRoot}/recipes/names?count=0`);
+	async function fetchRecipeList() {
+		let query = searchText == '' ? '' : `&q=${searchText.replaceAll(' ', ',')}`;
+		const resp = await fetch(`${apiRoot}/recipes/names?count=${pageSize}&page=${page}${query}`);
     if (resp.ok) {
       return resp.json();
     } else {
@@ -20,7 +23,8 @@
     }
   }
 
-  let failedLoad = false;
+	let failedLoad = false;
+	let fetched = false;
   let mounted = false;
 
   // Load the recipes immediately
@@ -31,7 +35,8 @@
     }, 200);
 
     try {
-      recipes = await fetchRecipeList();
+			recipes = await fetchRecipeList();
+			fetched = true;
     } catch (err) {
       failedLoad = true;
       throw err
@@ -44,6 +49,38 @@
 			tag: 'new',
 			msg: '',
 		}});
+	}
+
+	let debouncing: boolean = false;
+	let searchPending: boolean = false;
+	// A debounced recipe search
+	async function searchChange() {
+		// Prevent rapid calling while the text is changing quickly
+		if (debouncing && searchText != '') {
+			searchPending = true;
+			return;
+		}
+
+		// Prevent rapid calls and reset the page (for new results)
+		debouncing = true;
+		page = 0;
+		try {
+			recipes = await fetchRecipeList()
+		} catch (err) {
+			failedLoad = true;
+			throw err;
+		}
+
+		// Set a delay to unset `debounce` and allow searching again
+		setTimeout(async ()=>{
+			debouncing = false;
+
+			// If a search was attempted during debounce, we'll call it now
+			if (searchPending) {
+				searchPending = false;
+				await searchChange()
+			}
+		}, 250);
 	}
 
   // Handles an event thrown by a RecipeItem
@@ -93,14 +130,15 @@
 </script>
 
 <!-- Main Recipe List -->
-{#if recipes}
-<div class="mx-5 my-2 rounded-box flex-col">
+{#if fetched}
+<div class="my-2 rounded-box flex-col">
   <!-- Search bar -->
   <div class="flex justify-center my-2">
-    <input 
+		<input 
+			 bind:value={searchText}
        type="text" 
-       placeholder="Search Recipes (Unimplemented)" 
-       class="input input-bordered input-sm w-full max-w-sm input-disabled"/>
+       placeholder="Search Recipes..." 
+       class="input input-bordered input-sm w-full max-w-md"/>
   </div>
   <!-- Recipe List -->
   <div class="flex justify-center">
