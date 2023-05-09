@@ -204,10 +204,11 @@
       </button>
     </div>
     
-    <!-- Source editor (stays loaded to preserve undo history) -->
-    <div class={`w-full lower-z ${tabState == TabState.Source ? 'h-[50vh]' : 'h-1 opacity-0'}`}>
-      <textarea bind:value={textArea} class="textarea textarea-bordered ring-0 outline-none textarea-ghost h-full w-full"/>
-      <div class="btn-group flex justify-center gap-3">
+		<!-- Source editor (stays loaded to preserve undo history) -->
+			<div class={`w-full lower-z flex flex-col ${tabState == TabState.Source ? 'h-[50vh]' : 'h-1 opacity-0'}`}>
+
+      <textarea bind:value={textArea} class="textarea grow textarea-bordered textarea-ghost w-full"/>
+      <div class="btn-group flex flex-none justify-center gap-3">
         {#if saving == SaveState.Default}
         <button class={`btn flex-auto ${titleChanged || newRecipeMode ? '' : 'hidden'}`} 
            on:click={()=>{saveClick(true);}}>

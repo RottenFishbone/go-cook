@@ -44,7 +44,7 @@
 
   <slot/>
 
-<footer class="footer footer-center p-10 my-10">
+<footer class="footer footer-center my-5">
   <div class="divider">
     <p class="text-xs">
     Copyright 2023 Jayden Dumouchel 
