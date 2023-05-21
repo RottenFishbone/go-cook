@@ -1,14 +1,17 @@
 ## go-cook &nbsp;&nbsp; [![Go Report Card](https://goreportcard.com/badge/git.sr.ht/~rottenfishbone/go-cook)](https://goreportcard.com/report/git.sr.ht/~rottenfishbone/go-cook)
-This project aims to be a reimplementation, and eventually extension, of the original [CooklangCLI](https://github.com/cooklang/CookCLI), written in Go.  
+This project aims to be a reimplementation, and eventually extension, of the original 
+[CooklangCLI](https://github.com/cooklang/CookCLI), written in Go.  
 
 The root package provides the parser and the requisite types under the package name `cook`. 
-Thus, despite the scope of the project, importing the root will provide a lightweight cook parsing library.
+Thus, despite the scope of the project, importing the root will provide a 
+lightweight cook parsing library.
 
 -------
 
 #### Current State
 At present, the parser works and passes all canonical tests listed 
-[here](https://github.com/cooklang/spec/tree/fa9bc51515b3317da434cb2b5a4a6ac12257e60b/tests). 
+[here](https://github.com/cooklang/spec/tree/fa9bc51515b3317da434cb2b5a4a6ac12257e60b/tests) 
+using `internal/cmd/test_gen` to pull the latest tests and generate test code directly.
 
 The CLI provides basic recipe reading as well as access to a webserver and an API server.
 
@@ -26,24 +29,23 @@ can perform any action required to manage or view a recipe directory.
 This functionality will be extended to the CLI once necessary components are finished.
 
 ### Compilation 
-To use the libraries, you can simply run `go build` as needed. 
+To use the parsing library, you can simply run `go build`, 
+or import the package in a module. 
 
 To use the command line utility *with a server* it is required that you build the 
-[Svelte](https://svelte.dev/) webapp *prior* to compiling the binary. This requires `npm` is installed.
+[Svelte](https://svelte.dev/) webapp *prior* to compiling the binary. 
+This requires `npm` is installed.
 
-The easiest way is to simply run `make` in the project root which will build the webapp and then 
-compile the binary.
+The easiest way is to simply run `make` in the project root which will build the 
+webapp and then compile the binary (embedding the webapp into the binary).
 
-Alternatively (for unix-based OS):
-```
-cd internal/web/
-npm install
-npm run build
-cd ../../
-cd cmd/cook/
-go build
-```
-Will produce a usable binary in `cmd/cook`.
+Tests can be regenerated/updated using `make canonical`
+
+If you don't want to use make, or don't have access, you can view the Makefile 
+to examine the build process for various tasks (build, test gen, formatting etc.).
+
+To build the CLI binary without the webapp, simply run `go build` in the `cmd/cook/`
+directory.
 
 ----------
 
