@@ -11,6 +11,12 @@ web:
 fmt:
 	@find . -name "*.go" -type f -exec gofmt -w $$(dirname {}) \;
 
+.PHONY: canonical
+canonical:
+	go build ./internal/cmd/test_gen
+	./test_gen
+	gofmt -w -s canonical_test.go
+
 .PHONY: clean
 clean:
 	rm -f cook

@@ -18,9 +18,9 @@ func (Timer) isChunk()      {}
 
 // Text is a string wrapper (to allow for safe inclusion to Chunk interface)
 type Text string
-type Ingredient component
-type Cookware component
-type Timer component
+type Ingredient Component
+type Cookware Component
+type Timer Component
 
 // Unwraps Text chunk into a string
 func (x Text) ToString() string {
@@ -46,8 +46,8 @@ func (x Timer) ToString() string {
 }
 
 // Convert `Ingredient` to its base struct `component`
-func (node *Ingredient) toComponent() component {
-	return component{
+func (node *Ingredient) toComponent() Component {
+	return Component{
 		Name:   node.Name,
 		Qty:    node.Qty,
 		QtyVal: node.QtyVal,
@@ -56,8 +56,8 @@ func (node *Ingredient) toComponent() component {
 }
 
 // Convert `Cookware` to its base struct `component`
-func (node *Cookware) toComponent() component {
-	return component{
+func (node *Cookware) toComponent() Component {
+	return Component{
 		Name:   node.Name,
 		Qty:    node.Qty,
 		QtyVal: node.QtyVal,
@@ -66,8 +66,8 @@ func (node *Cookware) toComponent() component {
 }
 
 // Convert `Timer` to its base struct `component`
-func (node *Timer) toComponent() component {
-	return component{
+func (node *Timer) toComponent() Component {
+	return Component{
 		Name:   node.Name,
 		Qty:    node.Qty,
 		QtyVal: node.QtyVal,
@@ -150,7 +150,7 @@ func (s *Step) UnmarshalJSON(data []byte) error {
 			// Re-encode chunks to json to unmarshal as a component
 			dataMap := chunkWrap["data"].(map[string]interface{})
 			data, _ := json.Marshal(dataMap)
-			var comp component
+			var comp Component
 			_ = json.Unmarshal(data, &comp)
 
 			// Convert component to relevant type
@@ -191,17 +191,17 @@ type Metadata struct {
 //
 // Recipes can be easily parsed from a string using the function `ParseRecipe`.
 type Recipe struct {
-	Name        string       `json:"name"`
-	Metadata    []Metadata   `json:"metadata"`
-	Ingredients []Ingredient `json:"ingredients"`
-	Cookware    []Cookware   `json:"cookware"`
-	Timers      []Timer      `json:"timers"`
-	Steps       []Step       `json:"steps"`
+	Name        string            `json:"name"`
+	Metadata    map[string]string `json:"metadata"`
+	Ingredients []Ingredient      `json:"ingredients"`
+	Cookware    []Cookware        `json:"cookware"`
+	Timers      []Timer           `json:"timers"`
+	Steps       []Step            `json:"steps"`
 }
 
-// Represents a generic `component`, used in cooklang to define
+// Represents a generic `Component`, used in cooklang to define
 // ingredients, cookware and timers.
-type component struct {
+type Component struct {
 	Name   string  `json:"name"`
 	Qty    string  `json:"qty"`
 	QtyVal float64 `json:"qtyVal"`
@@ -214,7 +214,7 @@ type component struct {
 const NoQty = 0
 
 // Build an `Ingredient` from a `component`
-func (node *component) toIngredient() Ingredient {
+func (node *Component) toIngredient() Ingredient {
 	return Ingredient{
 		Name:   node.Name,
 		Qty:    node.Qty,
@@ -224,7 +224,7 @@ func (node *component) toIngredient() Ingredient {
 }
 
 // Build a `Cookware` from a `component`
-func (node *component) toCookware() Cookware {
+func (node *Component) toCookware() Cookware {
 	return Cookware{
 		Name:   node.Name,
 		Qty:    node.Qty,
@@ -234,7 +234,7 @@ func (node *component) toCookware() Cookware {
 }
 
 // Build a `Timer` from a `component`
-func (node *component) toTimer() Timer {
+func (node *Component) toTimer() Timer {
 	return Timer{
 		Name:   node.Name,
 		Qty:    node.Qty,

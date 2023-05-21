@@ -42,7 +42,7 @@ func Get(key string) string {
 	return vars[key]
 }
 
-// Loads a `cooklang-go` config file and returns the parsed `Config` struct.
+// Loads a `go-cook` config file and returns the parsed `Config` struct.
 //
 // Leave path blank to use default location.
 // NOTE: Defaults only work with Unix based OS atm

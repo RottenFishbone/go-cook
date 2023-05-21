@@ -45,7 +45,7 @@ func buildCookY(ast *y.AST) y.Parser {
 	uniNl := y.TokenExact(`[\x{000A}-\x{000D}\x{0085}\x{0028}\x{0029}]`, "UNICODE_NL")
 
 	// Tokens
-	specifierRegex := `[~@#]` // I hate this but idk how else to lookahead
+	specifierRegex := `[~@#]`
 	specifier := y.TokenExact(specifierRegex, "SPEC")
 	whitespace := y.TokenExact(`[\p{Zs}\x{0009}]`, "WHITESPACE")
 	punctuation := y.TokenExact(`\pP`, "PUNCT")
@@ -58,7 +58,11 @@ func buildCookY(ast *y.AST) y.Parser {
 	//-------------
 	// Text
 	//-------------
+	// all chacters EXCEPT `specifier`
 	text := ast.ManyUntil("text", nil, char, nil, specifier)
+	// consume a `specifier` then act as `text` normally does
+	specText := ast.And("text", nil, specifier, text)
+	// non-punctuation, non-white space text
 	word := ast.ManyUntil("word", nil, char, nil, y.OrdChoice(nil, punctuation, whitespace))
 
 	//-------------
@@ -74,10 +78,13 @@ func buildCookY(ast *y.AST) y.Parser {
 	//-------------
 	// Components
 	//-------------
-	// amountField <-> no name component
 	amountField := ast.And("amount_field", nil, ocurl, optAmount, ccurl)
+	// No-word component
+	nwComponent := amountField
+	// One-Word component
 	optAmountField := ast.Maybe("", nil, amountField)
 	owComponent := ast.And("one_word_component", nil, word, optAmountField)
+	// Multi-word component
 	mwComponentText := ast.ManyUntil("words", nil, char, nil, ocurl)
 	mwComponent := ast.And("multiword_component",
 		func(name string, s y.Scanner, node y.Queryable) y.Queryable {
@@ -106,8 +113,9 @@ func buildCookY(ast *y.AST) y.Parser {
 	//-------------
 	// Timers
 	//-------------
-	timerTypes := ast.OrdChoice("", nil, mwComponent, owComponent, amountField)
+	timerTypes := ast.OrdChoice("", nil, mwComponent, owComponent, nwComponent)
 	timer := ast.And("timer", nil, tilde, timerTypes)
+
 	//------------
 	// Metadata
 	//------------
@@ -117,7 +125,8 @@ func buildCookY(ast *y.AST) y.Parser {
 	//------------
 	// Step
 	//------------
-	chunk := ast.OrdChoice("chunk", forceNamed, ingredient, cookware, timer, text)
+	// NOTE: chunk uses nodify callback `forceNamed` to ensure a named node is created
+	chunk := ast.OrdChoice("chunk", forceNamed, ingredient, cookware, timer, text, specText)
 	step := ast.Kleene("step", nil, chunk)
 
 	// Either metadata or step
@@ -132,13 +141,13 @@ func buildCookY(ast *y.AST) y.Parser {
 // a byte array and returns the result.
 func stripComments(data *[]byte) []byte {
 	regex, _ := regexp.Compile(`((--.*((\r\n)|(\n)|(\r)|$))|(\[-(.|\s)*-\]))`)
-	return regex.ReplaceAll(*data, make([]byte, 0))
+	return regex.ReplaceAll(*data, []byte("\n"))
 }
 
 // Attempt to parse a quantity fraction string into a float representation.
 // Additionally, parses decimals/whole values. e.g. "1.5", "5"
 // cook.NoQty is returned on failure
-func tryParseFraction(qty string) float64 {
+func TryParseQty(qty string) float64 {
 	if qty == "" {
 		return NoQty
 	}
@@ -192,7 +201,7 @@ func parseAmountNode(node y.Queryable) (string, float64, string) {
 		}
 	}
 
-	qtyVal := tryParseFraction(qty)
+	qtyVal := TryParseQty(qty)
 
 	return qty, qtyVal, unit
 }
@@ -200,7 +209,7 @@ func parseAmountNode(node y.Queryable) (string, float64, string) {
 // Parses an `AST` "*_component" node into a `component` struct.
 // These are part of the cooklang spec and are used to define
 // ingredients, cookware and timers
-func parseComponentNode(node y.Queryable) component {
+func parseComponentNode(node y.Queryable) Component {
 	var text string
 	var amountNode y.Queryable
 
@@ -220,7 +229,7 @@ func parseComponentNode(node y.Queryable) component {
 	}
 
 	qty, qtyVal, unit := parseAmountNode(amountNode)
-	return component{text, qty, qtyVal, unit}
+	return Component{text, qty, qtyVal, unit}
 }
 
 // Parses an `AST` "chunk" node. These are the building blocks of recipes.
@@ -267,11 +276,11 @@ func ParseRecipeString(name string, data string) Recipe {
 func ParseRecipe(name string, data *[]byte) Recipe {
 	r := Recipe{
 		Name:        name,
-		Metadata:    make([]Metadata, 0, 32),
-		Ingredients: make([]Ingredient, 0, 32),
-		Cookware:    make([]Cookware, 0, 8),
-		Timers:      make([]Timer, 0, 8),
-		Steps:       make([]Step, 0, 16),
+		Metadata:    map[string]string{},
+		Ingredients: []Ingredient{},
+		Cookware:    []Cookware{},
+		Timers:      []Timer{},
+		Steps:       []Step{},
 	}
 
 	// Don't parse empty recipe
@@ -301,17 +310,16 @@ func ParseRecipe(name string, data *[]byte) Recipe {
 		case "metadata":
 			// Metadata is super simple, just push to recipe
 			children := node.GetChildren()
-			r.Metadata = append(r.Metadata, Metadata{
-				Tag:  strings.TrimSpace(children[1].GetValue()),
-				Body: strings.TrimSpace(children[3].GetValue()),
-			})
+			tag := strings.TrimSpace(children[1].GetValue())
+			val := strings.TrimSpace(children[3].GetValue())
+			r.Metadata[tag] = val
 		case "step":
 			// Steps are built from chunks, we need to parse those
 			step := make(Step, 0)
 			stepSubNodes := node.GetChildren()
-			for _, chunkNode := range stepSubNodes {
+			for i, chunkNode := range stepSubNodes {
 				chunk := parseChunkNode(chunkNode)
-				step = append(step, chunk)
+
 				switch chunk := chunk.(type) {
 				case Ingredient:
 					r.Ingredients = append(r.Ingredients, chunk)
@@ -319,13 +327,25 @@ func ParseRecipe(name string, data *[]byte) Recipe {
 					r.Cookware = append(r.Cookware, chunk)
 				case Timer:
 					r.Timers = append(r.Timers, chunk)
-				case Text: // valid, but no op
+				case Text:
+					// Join consecutive text blocks together
+					if len(step) > 0 {
+						switch lastStep := step[i-1].(type) {
+						case Text:
+							step[i-1] = Text(lastStep.ToString() + chunk.ToString())
+							continue
+						}
+					}
 				default:
 					panic("Unhandled Chunk type.")
 				}
+
+				step = append(step, chunk)
 			}
 			// Push newly built step into the recipe
-			r.Steps = append(r.Steps, step)
+			if len(step) > 0 {
+				r.Steps = append(r.Steps, step)
+			}
 		default:
 			panic("Unhandled node returned from query.")
 		}
