@@ -51,7 +51,7 @@ func PrettyPrint(recipe *cook.Recipe) {
 	wr := new(tabwriter.Writer)
 	if len(recipe.Metadata) > 0 {
 		fmt.Println("Metadata:")
-		for k, v  := range recipe.Metadata {
+		for k, v := range recipe.Metadata {
 			fmt.Printf("\t%v: %v\n", k, v)
 		}
 		fmt.Println("")

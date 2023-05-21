@@ -1,6 +1,7 @@
 .PHONY: cook
 cook:
 	make web
+	make fmt
 	go build ./cmd/cook
 
 .PHONY: web
