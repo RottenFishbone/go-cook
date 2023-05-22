@@ -41,4 +41,4 @@ jobs:
       # find each dir containing a .go file
       # run gofmt -s and save failures to a logfile
       # print the logfile if needed and exit failure
-    - run: touch err && find . -type f -name '*.go' | sed -r 's|/[^/]+$||' | sort -u | xargs -L1 bash -c 'if [ "$(gofmt -s -l $0 | wc -l)" -gt 0 ]; then gofmt -s -d $0 >> err; fi' && bash -c 'if [ "$(wc -l < bad.txt)" -gt 0 ]; then cat bad.txt; exit 1; fi' 
+    - run: touch err && find . -type f -name '*.go' | sed -r 's|/[^/]+$||' | sort -u | xargs -L1 bash -c 'if [ "$(gofmt -s -l $0 | wc -l)" -gt 0 ]; then gofmt -s -d $0 >> err; fi' && bash -c 'if [ "$(wc -l < err)" -gt 0 ]; then cat err; exit 1; fi' 
