@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  build:
+  build/test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -22,7 +22,10 @@ jobs:
       run: go build -v ./cmd/cook/
 
     - name: Tests
-      run: if [[ $(find . -name "*_test.go" -type f -exec go test -v $(dirname {}) \; 2>&1 | tee log.txt | grep -c FAIL) -gt 0 ]]; then cat log.txt && exit 1; else cat log.txt; fi
+      # find each directory containing a *_test.go, 
+      # run go test in that folder
+      # exit xargs on first failure
+      run: find . -type f -name '*_test.go' | sed -r 's|/[^/]+$||' | sort -u | xargs -L1 go test -v $0 || exit 255
 
   linter:
     runs-on: ubuntu-latest
@@ -35,4 +38,7 @@ jobs:
         go-version: 1.19
 
     - name: gofmt
-      run: if [ "$(find . -name "*.go" -type f -exec gofmt -l $(dirname {}) \; | wc -l)" -gt 0 ]; then exit 1; fi
+      # find each dir containing a .go file
+      # run gofmt -s and save failures to a logfile
+      # print the logfile if needed and exit failure
+    - run: touch err && find . -type f -name '*.go' | sed -r 's|/[^/]+$||' | sort -u | xargs -L1 bash -c 'if [ "$(gofmt -s -l $0 | wc -l)" -gt 0 ]; then gofmt -s -d $0 >> err; fi' && bash -c 'if [ "$(wc -l < bad.txt)" -gt 0 ]; then cat bad.txt; exit 1; fi' 
