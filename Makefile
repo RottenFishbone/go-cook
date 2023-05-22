@@ -21,6 +21,8 @@ canonical:
 .PHONY: clean
 clean:
 	rm -f cook
+	rm -f test_gen
 	go clean
 	go clean ./cmd/*
+	go clean ./internal/cmd/test_gen/
 	rm -rf ./internal/web/dist/*

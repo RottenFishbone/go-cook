@@ -9,9 +9,10 @@ lightweight cook parsing library.
 -------
 
 #### Current State
-At present, the parser works and passes all canonical tests listed 
-[here](https://github.com/cooklang/spec/tree/fa9bc51515b3317da434cb2b5a4a6ac12257e60b/tests) 
-using `internal/cmd/test_gen` to pull the latest tests and generate test code directly.
+At present, the parser is almost stable. It has all canonical features, however 
+it will need to be extended in the future to include photos and possibly comments.
+Canonical tests [here](https://github.com/cooklang/spec/tree/main/tests) are generated
+using `internal/cmd/test_gen` to pull the latest tests and generate test code.
 
 The CLI provides basic recipe reading as well as access to a webserver and an API server.
 
@@ -23,8 +24,8 @@ The CLI provides basic recipe reading as well as access to a webserver and an AP
   server      Hosts a local webserver to view/manage recipes.
 ```
 
-Most focus so far has been on making a usable web interface. While unfinished, it presently
-can perform any action required to manage or view a recipe directory.
+Most focus so far has been on making a usable web interface. While non-final, it
+does provide a usable and pleasant interface already.
 
 This functionality will be extended to the CLI once necessary components are finished.
 
