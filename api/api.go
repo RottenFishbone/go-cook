@@ -29,7 +29,7 @@ func assertConfigLoaded() {
 // recipe's directory.
 func sanitizeRecipeName(path string) (string, error) {
 	var err error
-	rootDir := config.Get(config.KeyRecipeDir)
+	rootDir := config.GetConfig().Recipe.Dir
 
 	// Sanitize extension
 	if path, err = sanitizeExt(path, ".cook"); err != nil {
@@ -102,7 +102,8 @@ func collectRecipeFolders() []string {
 	// Use a stack to descend into possibly subfolders
 	dirs := make([]string, 0)
 	dirStack := make([]string, 0)
-	dirStack = append(dirStack, config.Get(config.KeyRecipeDir))
+	recipeDir := config.GetConfig().Recipe.Dir
+	dirStack = append(dirStack, recipeDir)
 
 	for len(dirStack) > 0 {
 		// Pop the top of the stack
@@ -139,7 +140,7 @@ func GetAllRecipeNames() ([]string, error) {
 	var err error
 
 	// Scan every (sub)directory in the recipe dir for .cook files
-	root := config.Get(config.KeyRecipeDir)
+	root := config.GetConfig().Recipe.Dir
 	recipes := make([]string, 0)
 	recipeDirs := collectRecipeFolders()
 	for _, dir := range recipeDirs {
@@ -336,7 +337,7 @@ func RenameRecipe(name string, target string) error {
 	}
 
 	// Try to clear empty directories, if the OS didn't
-	rootDir := config.Get(config.KeyRecipeDir)
+	rootDir := config.GetConfig().Recipe.Dir
 	oldDir := strings.TrimPrefix(rootDir, filepath.Dir(name))
 	dirs := strings.Split(filepath.ToSlash(oldDir), "/")
 	if len(dirs) > 0 {
@@ -419,7 +420,7 @@ func DeleteRecipe(name string) error {
 	}
 
 	// Try to clear empty directories, if the OS didn't
-	rootDir := config.Get(config.KeyRecipeDir)
+	rootDir := config.GetConfig().Recipe.Dir
 	oldDir := strings.TrimPrefix(rootDir, filepath.Dir(name))
 	dirs := strings.Split(filepath.ToSlash(oldDir), "/")
 	if len(dirs) > 0 {

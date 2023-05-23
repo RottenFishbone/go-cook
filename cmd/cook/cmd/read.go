@@ -31,7 +31,7 @@ for it.`,
 	},
 
 	Run: func(cmd *cobra.Command, args []string) {
-		recipeDir := config.Get(config.KeyRecipeDir)
+		recipeDir := config.GetConfig().Recipe.Dir
 		for _, path := range args {
 			var r cook.Recipe
 

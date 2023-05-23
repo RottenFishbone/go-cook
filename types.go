@@ -171,18 +171,6 @@ func (s *Step) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Metadata is arbitrary information about a recipe, consisting
-// simply of a tag and a body.
-//
-// While some implementations only allow metadata at the start, the spec
-// defines it in equal precedence to a `Step`.
-//
-// It may be prudent to further parse metadata before displaying.
-type Metadata struct {
-	Tag  string `json:"tag"`
-	Body string `json:"body"`
-}
-
 // Recipes consist primarily of Metadata and Steps. Steps are stored sequentially
 // and offer a continuous construction of the parsed `.cook` file.
 //

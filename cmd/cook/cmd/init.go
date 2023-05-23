@@ -68,7 +68,7 @@ which will be added to the created config automatically.`,
 
 		if seedFlag {
 			// Seed into the recipes folder
-			recipesPath = config.Get(config.KeyRecipeDir)
+			recipesPath = config.GetConfig().Recipe.Dir
 			fmt.Printf("Seeded recipes into: %v\n", recipesPath)
 			seed.SeedToDir(recipesPath)
 		}
