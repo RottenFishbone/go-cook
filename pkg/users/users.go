@@ -144,6 +144,20 @@ func AddUser(username string, password string) error {
 	return nil
 }
 
+func GetUser(username string) (UserData, error) {
+	ensureUsersLoaded()
+
+	user, ok := users[username]
+	if ok {
+		return user, nil
+	} else {
+		return UserData{}, errors.New("User does not exist: " + username)
+	}
+}
+
+// Removes a user from the user file
+//
+// Returns nil on success
 func RemoveUser(username string) error {
 	ensureUsersLoaded()
 

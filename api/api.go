@@ -21,7 +21,7 @@ import (
 // An unloaded read should never occur at runtime, unless there is a bug.
 func assertConfigLoaded() {
 	if !config.IsLoaded() {
-		panic("Attempted to read unloaded config")
+		panic("API attempted to read unloaded config.")
 	}
 }
 

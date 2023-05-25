@@ -3,6 +3,7 @@ package config
 // TODO Platform independent configs
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,6 +25,7 @@ type (
 		Recipe   RecipeConfig   `toml:"recipe"`
 		Shopping ShoppingConfig `toml:"shopping"`
 		Users    string         `toml:"users"`
+		HMACKey  string         `toml:"hmac-key"`
 	}
 
 	RecipeConfig struct {
@@ -130,6 +132,7 @@ func ConfigInit(path string, recipes string, shopping string) bool {
 	conf.Recipe.Dir = recipes
 	conf.Shopping.Dir = shopping
 	conf.Users = defaultUsersPath()
+	conf.HMACKey = string(generateHMACKey(128))
 
 	loaded = true
 
@@ -196,10 +199,10 @@ func defaultUsersPath() string {
 // Tests for the existence of the data directories, if they do not exist then
 // they are created.
 //
-// Panics on failure.
-func EnsureDataDirInit() {
+// Returns nil on success
+func EnsureDataDirInit() error {
 	if !loaded {
-		panic("Attempted to init data dirs before loading configs")
+		return errors.New("Attempted to init data dirs before loading configs")
 	}
 	var err error
 	rDir := conf.Recipe.Dir
@@ -208,8 +211,7 @@ func EnsureDataDirInit() {
 	// Spawn recipe dir
 	if !common.FileExists(rDir) {
 		if err = os.MkdirAll(rDir, os.ModePerm); err != nil {
-			common.ShowError(err)
-			panic(err)
+			return err
 		}
 
 		fmt.Printf("Created recipes directory at: %v\n", rDir)
@@ -218,27 +220,30 @@ func EnsureDataDirInit() {
 	// Spawn shopping list dir
 	if !common.FileExists(sDir) {
 		if err = os.MkdirAll(sDir, os.ModePerm); err != nil {
-			common.ShowError(err)
-			panic(err)
+			return err
 		}
 
 		fmt.Printf("Created shopping list directory at: %v\n", sDir)
 	}
+
+	return nil
 }
 
 // Tests for the existence of the users file, if it does not exist then an
 // empty one will be created.
 //
-// Panics on failure
-func EnsureUsersInit() {
+// Returns nil on success
+func EnsureUsersInit() error {
 	if !loaded {
-		panic("Attempted to init users file before loading configs")
+		return errors.New("Attempted to init users file before loading configs")
 	}
 	var err error
 	users := conf.Users
 	ext := filepath.Ext(users)
 	if ext != ".toml" {
-		panic("Error: users file must be of type `.toml`")
+		errMsg := fmt.Sprintf(
+			"Users must be `.toml` or a directory, found: %v\n", users)
+		return errors.New(errMsg)
 	} else if ext == "" {
 		users = filepath.Join(users, "users.toml")
 	}
@@ -246,19 +251,19 @@ func EnsureUsersInit() {
 	// Create the users' parent directory if needed
 	if !common.FileExists(filepath.Dir(users)) {
 		if err = os.MkdirAll(filepath.Dir(users), os.ModePerm); err != nil {
-			common.ShowError(err)
-			panic(err)
+			return err
 		}
 	}
 
 	if !common.FileExists(users) {
 		var file *os.File
 		if file, err = os.Create(users); err != nil {
-			common.ShowError(err)
-			panic(err)
+			return err
 		}
 		file.Close()
 
 		fmt.Printf("Created new users.toml at: %v\n", users)
 	}
+
+	return nil
 }
