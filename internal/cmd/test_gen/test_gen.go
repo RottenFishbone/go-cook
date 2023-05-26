@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -123,7 +124,14 @@ func generateTestFile(specPath string, outPath string) error {
 	// Generate the output string
 	var sb strings.Builder
 	sb.WriteString(template)
-	for testName, testData := range spec.Tests {
+	testNames := make([]string, 0, len(spec.Tests))
+	for k := range spec.Tests {
+		testNames = append(testNames, k)
+	}
+	sort.Sort(sort.StringSlice(testNames))
+	
+	for _, testName := range testNames {
+		testData := spec.Tests[testName]
 		sb.WriteString(generateTestFunc(testName, &testData))
 		sb.WriteString("\n")
 	}

@@ -110,60 +110,60 @@ func assertCanonicalRecipe(t *testing.T, got *Recipe, want *Recipe) {
 // Tests
 // --------------------------------------------------------------
 
-func TestMutipleIngredientsWithoutStopper(t *testing.T) {
-	got := ParseRecipeString("", `@chilli cut into pieces and @garlic
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}, {Name: "garlic", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}, Text(" cut into pieces and "), Ingredient{Name: "garlic", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestQuantityAsText(t *testing.T) {
-	got := ParseRecipeString("", `@thyme{few%sprigs}
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "thyme", Qty: "few", QtyVal: NoQty, Unit: "sprigs"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "thyme", Qty: "few", QtyVal: NoQty, Unit: "sprigs"}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestTimerWithUnicodeWhitespace(t *testing.T) {
-	got := ParseRecipeString("", `Let it ~rest then serve
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}}, Steps: []Step{{Text("Let it "), Timer{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}, Text(" then serve")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestInvalidSingleWordIngredient(t *testing.T) {
-	got := ParseRecipeString("", `Message me @ example
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Message me @ example")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestMultiLineDirections(t *testing.T) {
+func TestBasicDirection(t *testing.T) {
 	got := ParseRecipeString("", `Add a bit of chilli
-
-Add a bit of hummus
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add a bit of chilli")}, {Text("Add a bit of hummus")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add a bit of chilli")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestIngredientNoUnitsNotOnlyString(t *testing.T) {
-	got := ParseRecipeString("", `@5peppers
+func TestComments(t *testing.T) {
+	got := ParseRecipeString("", `-- testing comments
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "5peppers", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "5peppers", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestInvalidMultiWordIngredient(t *testing.T) {
-	got := ParseRecipeString("", `Message @ example{}
+func TestCommentsAfterIngredients(t *testing.T) {
+	got := ParseRecipeString("", `@thyme{2%sprigs} -- testing comments
+and some text
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Message @ example{}")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "thyme", Qty: "2", QtyVal: 2, Unit: "sprigs"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "thyme", Qty: "2", QtyVal: 2, Unit: "sprigs"}, Text(" ")}, {Text("and some text")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestEquipmentQuantityOneWord(t *testing.T) {
-	got := ParseRecipeString("", `#frying pan{three}
+func TestCommentsWithIngredients(t *testing.T) {
+	got := ParseRecipeString("", `-- testing comments
+@thyme{2%sprigs}
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "three", QtyVal: NoQty, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Cookware{Name: "frying pan", Qty: "three", QtyVal: NoQty, Unit: ""}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "thyme", Qty: "2", QtyVal: 2, Unit: "sprigs"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "thyme", Qty: "2", QtyVal: 2, Unit: "sprigs"}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestIngredientWithNumbers(t *testing.T) {
-	got := ParseRecipeString("", `@tipo 00 flour{250%g}
+func TestCookwareWithUnicodeWhitespace(t *testing.T) {
+	got := ParseRecipeString("", `Add to #pot then boil
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "tipo 00 flour", Qty: "250", QtyVal: 250, Unit: "g"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "tipo 00 flour", Qty: "250", QtyVal: 250, Unit: "g"}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Add to "), Cookware{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}, Text(" then boil")}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestDirectionWithIngredient(t *testing.T) {
+	got := ParseRecipeString("", `Add @chilli{3%items}, @ginger{10%g} and @milk{1%l}.
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}, {Name: "ginger", Qty: "10", QtyVal: 10, Unit: "g"}, {Name: "milk", Qty: "1", QtyVal: 1, Unit: "l"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add "), Ingredient{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}, Text(", "), Ingredient{Name: "ginger", Qty: "10", QtyVal: 10, Unit: "g"}, Text(" and "), Ingredient{Name: "milk", Qty: "1", QtyVal: 1, Unit: "l"}, Text(".")}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestDirectionsWithDegrees(t *testing.T) {
+	got := ParseRecipeString("", `Heat oven up to 200°C
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Heat oven up to 200°C")}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestDirectionsWithNumbers(t *testing.T) {
+	got := ParseRecipeString("", `Heat 5L of water
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Heat 5L of water")}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestEquipmentMultipleWords(t *testing.T) {
+	got := ParseRecipeString("", `Fry in #frying pan{}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Fry in "), Cookware{Name: "frying pan", Qty: "1", QtyVal: 1, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
 func TestEquipmentMultipleWordsWithLeadingNumber(t *testing.T) {
@@ -172,8 +172,68 @@ func TestEquipmentMultipleWordsWithLeadingNumber(t *testing.T) {
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "7-inch nonstick frying pan", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Fry in "), Cookware{Name: "7-inch nonstick frying pan", Qty: "1", QtyVal: 1, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
+func TestEquipmentMultipleWordsWithSpaces(t *testing.T) {
+	got := ParseRecipeString("", `Fry in #frying pan{ }
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Fry in "), Cookware{Name: "frying pan", Qty: "1", QtyVal: 1, Unit: ""}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestEquipmentOneWord(t *testing.T) {
+	got := ParseRecipeString("", `Simmer in #pan for some time
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "pan", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Simmer in "), Cookware{Name: "pan", Qty: "1", QtyVal: 1, Unit: ""}, Text(" for some time")}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestEquipmentQuantity(t *testing.T) {
+	got := ParseRecipeString("", `#frying pan{2}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "2", QtyVal: 2, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Cookware{Name: "frying pan", Qty: "2", QtyVal: 2, Unit: ""}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestEquipmentQuantityMultipleWords(t *testing.T) {
+	got := ParseRecipeString("", `#frying pan{two small}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "two small", QtyVal: NoQty, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Cookware{Name: "frying pan", Qty: "two small", QtyVal: NoQty, Unit: ""}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestEquipmentQuantityOneWord(t *testing.T) {
+	got := ParseRecipeString("", `#frying pan{three}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "three", QtyVal: NoQty, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Cookware{Name: "frying pan", Qty: "three", QtyVal: NoQty, Unit: ""}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestFractions(t *testing.T) {
+	got := ParseRecipeString("", `@milk{1/2%cup}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "milk", Qty: "0.5", QtyVal: 0.5, Unit: "cup"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "milk", Qty: "0.5", QtyVal: 0.5, Unit: "cup"}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestFractionsInDirections(t *testing.T) {
+	got := ParseRecipeString("", `knife cut about every 1/2 inches
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("knife cut about every 1/2 inches")}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestFractionsLike(t *testing.T) {
+	got := ParseRecipeString("", `@milk{01/2%cup}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "milk", Qty: "01/2", QtyVal: NoQty, Unit: "cup"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "milk", Qty: "01/2", QtyVal: NoQty, Unit: "cup"}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestFractionsWithSpaces(t *testing.T) {
+	got := ParseRecipeString("", `@milk{1 / 2 %cup}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "milk", Qty: "0.5", QtyVal: 0.5, Unit: "cup"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "milk", Qty: "0.5", QtyVal: 0.5, Unit: "cup"}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
 func TestIngredientExplicitUnits(t *testing.T) {
 	got := ParseRecipeString("", `@chilli{3%items}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestIngredientExplicitUnitsWithSpaces(t *testing.T) {
+	got := ParseRecipeString("", `@chilli{ 3 % items }
 `)
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}}}}
 	assertCanonicalRecipe(t, &got, &want)
@@ -184,58 +244,34 @@ func TestIngredientImplicitUnits(t *testing.T) {
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "3", QtyVal: 3, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "chilli", Qty: "3", QtyVal: 3, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestMultiWordIngredientNoAmount(t *testing.T) {
-	got := ParseRecipeString("", `@hot chilli{}
+func TestIngredientMultipleWordsWithLeadingNumber(t *testing.T) {
+	got := ParseRecipeString("", `Top with @1000 island dressing{ }
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "hot chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "hot chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "1000 island dressing", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Top with "), Ingredient{Name: "1000 island dressing", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestSingleWordIngredientWithUnicodePunctuation(t *testing.T) {
-	got := ParseRecipeString("", `Add @chilli⸫ then bake
+func TestIngredientNoUnits(t *testing.T) {
+	got := ParseRecipeString("", `@chilli
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add "), Ingredient{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}, Text("⸫ then bake")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestFractionsLike(t *testing.T) {
-	got := ParseRecipeString("", `@milk{01/2%cup}
+func TestIngredientNoUnitsNotOnlyString(t *testing.T) {
+	got := ParseRecipeString("", `@5peppers
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "milk", Qty: "01/2", QtyVal: NoQty, Unit: "cup"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "milk", Qty: "01/2", QtyVal: NoQty, Unit: "cup"}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "5peppers", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "5peppers", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestTimerInteger(t *testing.T) {
-	got := ParseRecipeString("", `Fry for ~{10%minutes}
+func TestIngredientWithEmoji(t *testing.T) {
+	got := ParseRecipeString("", `Add some @🧂
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "", Qty: "10", QtyVal: 10, Unit: "minutes"}}, Steps: []Step{{Text("Fry for "), Timer{Name: "", Qty: "10", QtyVal: 10, Unit: "minutes"}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "🧂", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add some "), Ingredient{Name: "🧂", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestServings(t *testing.T) {
-	got := ParseRecipeString("", `>> servings: 1|2|3
+func TestIngredientWithNumbers(t *testing.T) {
+	got := ParseRecipeString("", `@tipo 00 flour{250%g}
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{"servings": "1|2|3"}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestMetadataBreak(t *testing.T) {
-	got := ParseRecipeString("", `hello >> sourced: babooshka
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("hello >> sourced: babooshka")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestMetadataMultiwordKey(t *testing.T) {
-	got := ParseRecipeString("", `>> cooking time: 30 mins
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{"cooking time": "30 mins"}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestSingleWordTimerWithUnicodePunctuation(t *testing.T) {
-	got := ParseRecipeString("", `Let it ~rest⸫ then serve
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}}, Steps: []Step{{Text("Let it "), Timer{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}, Text("⸫ then serve")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestInvalidSingleWordTimer(t *testing.T) {
-	got := ParseRecipeString("", `It is ~ 5
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("It is ~ 5")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "tipo 00 flour", Qty: "250", QtyVal: 250, Unit: "g"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "tipo 00 flour", Qty: "250", QtyVal: 250, Unit: "g"}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
 func TestIngredientWithUnicodeWhitespace(t *testing.T) {
@@ -250,28 +286,22 @@ func TestIngredientWithoutStopper(t *testing.T) {
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}, Text(" cut into pieces")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestFractions(t *testing.T) {
-	got := ParseRecipeString("", `@milk{1/2%cup}
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "milk", Qty: "0.5", QtyVal: 0.5, Unit: "cup"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "milk", Qty: "0.5", QtyVal: 0.5, Unit: "cup"}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestSlashInText(t *testing.T) {
-	got := ParseRecipeString("", `Preheat the oven to 200℃/Fan 180°C.
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Preheat the oven to 200℃/Fan 180°C.")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestSingleWordCookwareWithUnicodePunctuation(t *testing.T) {
-	got := ParseRecipeString("", `Place in #pot⸫ then boil
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Place in "), Cookware{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}, Text("⸫ then boil")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
 func TestInvalidMultiWordCookware(t *testing.T) {
 	got := ParseRecipeString("", `Recipe # 10{}
 `)
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Recipe # 10{}")}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestInvalidMultiWordIngredient(t *testing.T) {
+	got := ParseRecipeString("", `Message @ example{}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Message @ example{}")}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestInvalidMultiWordTimer(t *testing.T) {
+	got := ParseRecipeString("", `It is ~ {5}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("It is ~ {5}")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
 func TestInvalidSingleWordCookware(t *testing.T) {
@@ -280,22 +310,34 @@ func TestInvalidSingleWordCookware(t *testing.T) {
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Recipe # 5")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestComments(t *testing.T) {
-	got := ParseRecipeString("", `-- testing comments
+func TestInvalidSingleWordIngredient(t *testing.T) {
+	got := ParseRecipeString("", `Message me @ example
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Message me @ example")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestEquipmentMultipleWordsWithSpaces(t *testing.T) {
-	got := ParseRecipeString("", `Fry in #frying pan{ }
+func TestInvalidSingleWordTimer(t *testing.T) {
+	got := ParseRecipeString("", `It is ~ 5
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Fry in "), Cookware{Name: "frying pan", Qty: "1", QtyVal: 1, Unit: ""}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("It is ~ 5")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestFractionsInDirections(t *testing.T) {
-	got := ParseRecipeString("", `knife cut about every 1/2 inches
+func TestMetadata(t *testing.T) {
+	got := ParseRecipeString("", `>> sourced: babooshka
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("knife cut about every 1/2 inches")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{"sourced": "babooshka"}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestMetadataBreak(t *testing.T) {
+	got := ParseRecipeString("", `hello >> sourced: babooshka
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("hello >> sourced: babooshka")}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestMetadataMultiwordKey(t *testing.T) {
+	got := ParseRecipeString("", `>> cooking time: 30 mins
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{"cooking time": "30 mins"}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
 	assertCanonicalRecipe(t, &got, &want)
 }
 func TestMetadataMultiwordKeyWithSpaces(t *testing.T) {
@@ -304,29 +346,24 @@ func TestMetadataMultiwordKeyWithSpaces(t *testing.T) {
 	want := Recipe{Name: "", Metadata: map[string]string{"cooking time": "30 mins"}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestSingleWordTimer(t *testing.T) {
-	got := ParseRecipeString("", `Let it ~rest after plating
+func TestMultiLineDirections(t *testing.T) {
+	got := ParseRecipeString("", `Add a bit of chilli
+
+Add a bit of hummus
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}}, Steps: []Step{{Text("Let it "), Timer{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}, Text(" after plating")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add a bit of chilli")}, {Text("Add a bit of hummus")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestSingleWordIngredientWithPunctuation(t *testing.T) {
-	got := ParseRecipeString("", `Add some @chilli, then serve
+func TestMultiWordIngredient(t *testing.T) {
+	got := ParseRecipeString("", `@hot chilli{3}
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add some "), Ingredient{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}, Text(", then serve")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "hot chilli", Qty: "3", QtyVal: 3, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "hot chilli", Qty: "3", QtyVal: 3, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestCommentsWithIngredients(t *testing.T) {
-	got := ParseRecipeString("", `-- testing comments
-@thyme{2%sprigs}
+func TestMultiWordIngredientNoAmount(t *testing.T) {
+	got := ParseRecipeString("", `@hot chilli{}
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "thyme", Qty: "2", QtyVal: 2, Unit: "sprigs"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "thyme", Qty: "2", QtyVal: 2, Unit: "sprigs"}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestEquipmentQuantityMultipleWords(t *testing.T) {
-	got := ParseRecipeString("", `#frying pan{two small}
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "two small", QtyVal: NoQty, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Cookware{Name: "frying pan", Qty: "two small", QtyVal: NoQty, Unit: ""}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "hot chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "hot chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
 func TestMultipleLines(t *testing.T) {
@@ -336,22 +373,28 @@ func TestMultipleLines(t *testing.T) {
 	want := Recipe{Name: "", Metadata: map[string]string{"Prep Time": "15 minutes", "Cook Time": "30 minutes"}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
 	assertCanonicalRecipe(t, &got, &want)
 }
+func TestMutipleIngredientsWithoutStopper(t *testing.T) {
+	got := ParseRecipeString("", `@chilli cut into pieces and @garlic
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}, {Name: "garlic", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}, Text(" cut into pieces and "), Ingredient{Name: "garlic", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestQuantityAsText(t *testing.T) {
+	got := ParseRecipeString("", `@thyme{few%sprigs}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "thyme", Qty: "few", QtyVal: NoQty, Unit: "sprigs"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "thyme", Qty: "few", QtyVal: NoQty, Unit: "sprigs"}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
 func TestQuantityDigitalString(t *testing.T) {
 	got := ParseRecipeString("", `@water{7 k }
 `)
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "water", Qty: "7 k", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "water", Qty: "7 k", QtyVal: NoQty, Unit: ""}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestEquipmentOneWord(t *testing.T) {
-	got := ParseRecipeString("", `Simmer in #pan for some time
+func TestServings(t *testing.T) {
+	got := ParseRecipeString("", `>> servings: 1|2|3
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "pan", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Simmer in "), Cookware{Name: "pan", Qty: "1", QtyVal: 1, Unit: ""}, Text(" for some time")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestTimerFractional(t *testing.T) {
-	got := ParseRecipeString("", `Fry for ~{1/2%hour}
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "", Qty: "0.5", QtyVal: 0.5, Unit: "hour"}}, Steps: []Step{{Text("Fry for "), Timer{Name: "", Qty: "0.5", QtyVal: 0.5, Unit: "hour"}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{"servings": "1|2|3"}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
 	assertCanonicalRecipe(t, &got, &want)
 }
 func TestSingleWordCookwareWithPunctuation(t *testing.T) {
@@ -360,28 +403,28 @@ func TestSingleWordCookwareWithPunctuation(t *testing.T) {
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Place in "), Cookware{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}, Text(", then boil")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestDirectionsWithDegrees(t *testing.T) {
-	got := ParseRecipeString("", `Heat oven up to 200°C
+func TestSingleWordCookwareWithUnicodePunctuation(t *testing.T) {
+	got := ParseRecipeString("", `Place in #pot⸫ then boil
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Heat oven up to 200°C")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Place in "), Cookware{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}, Text("⸫ then boil")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestDirectionWithIngredient(t *testing.T) {
-	got := ParseRecipeString("", `Add @chilli{3%items}, @ginger{10%g} and @milk{1%l}.
+func TestSingleWordIngredientWithPunctuation(t *testing.T) {
+	got := ParseRecipeString("", `Add some @chilli, then serve
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}, {Name: "ginger", Qty: "10", QtyVal: 10, Unit: "g"}, {Name: "milk", Qty: "1", QtyVal: 1, Unit: "l"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add "), Ingredient{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}, Text(", "), Ingredient{Name: "ginger", Qty: "10", QtyVal: 10, Unit: "g"}, Text(" and "), Ingredient{Name: "milk", Qty: "1", QtyVal: 1, Unit: "l"}, Text(".")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add some "), Ingredient{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}, Text(", then serve")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestMetadata(t *testing.T) {
-	got := ParseRecipeString("", `>> sourced: babooshka
+func TestSingleWordIngredientWithUnicodePunctuation(t *testing.T) {
+	got := ParseRecipeString("", `Add @chilli⸫ then bake
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{"sourced": "babooshka"}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add "), Ingredient{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}, Text("⸫ then bake")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestTimerWithName(t *testing.T) {
-	got := ParseRecipeString("", `Fry for ~potato{42%minutes}
+func TestSingleWordTimer(t *testing.T) {
+	got := ParseRecipeString("", `Let it ~rest after plating
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "potato", Qty: "42", QtyVal: 42, Unit: "minutes"}}, Steps: []Step{{Text("Fry for "), Timer{Name: "potato", Qty: "42", QtyVal: 42, Unit: "minutes"}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}}, Steps: []Step{{Text("Let it "), Timer{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}, Text(" after plating")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
 func TestSingleWordTimerWithPunctuation(t *testing.T) {
@@ -390,71 +433,16 @@ func TestSingleWordTimerWithPunctuation(t *testing.T) {
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}}, Steps: []Step{{Text("Let it "), Timer{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}, Text(", then serve")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestDirectionsWithNumbers(t *testing.T) {
-	got := ParseRecipeString("", `Heat 5L of water
+func TestSingleWordTimerWithUnicodePunctuation(t *testing.T) {
+	got := ParseRecipeString("", `Let it ~rest⸫ then serve
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Heat 5L of water")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}}, Steps: []Step{{Text("Let it "), Timer{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}, Text("⸫ then serve")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestFractionsWithSpaces(t *testing.T) {
-	got := ParseRecipeString("", `@milk{1 / 2 %cup}
+func TestSlashInText(t *testing.T) {
+	got := ParseRecipeString("", `Preheat the oven to 200℃/Fan 180°C.
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "milk", Qty: "0.5", QtyVal: 0.5, Unit: "cup"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "milk", Qty: "0.5", QtyVal: 0.5, Unit: "cup"}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestIngredientNoUnits(t *testing.T) {
-	got := ParseRecipeString("", `@chilli
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "chilli", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestInvalidMultiWordTimer(t *testing.T) {
-	got := ParseRecipeString("", `It is ~ {5}
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("It is ~ {5}")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestEquipmentQuantity(t *testing.T) {
-	got := ParseRecipeString("", `#frying pan{2}
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "2", QtyVal: 2, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Cookware{Name: "frying pan", Qty: "2", QtyVal: 2, Unit: ""}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestIngredientWithEmoji(t *testing.T) {
-	got := ParseRecipeString("", `Add some @🧂
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "🧂", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add some "), Ingredient{Name: "🧂", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestCookwareWithUnicodeWhitespace(t *testing.T) {
-	got := ParseRecipeString("", `Add to #pot then boil
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Add to "), Cookware{Name: "pot", Qty: "1", QtyVal: 1, Unit: ""}, Text(" then boil")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestIngredientMultipleWordsWithLeadingNumber(t *testing.T) {
-	got := ParseRecipeString("", `Top with @1000 island dressing{ }
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "1000 island dressing", Qty: "some", QtyVal: NoQty, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Top with "), Ingredient{Name: "1000 island dressing", Qty: "some", QtyVal: NoQty, Unit: ""}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestCommentsAfterIngredients(t *testing.T) {
-	got := ParseRecipeString("", `@thyme{2%sprigs} -- testing comments
-and some text
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "thyme", Qty: "2", QtyVal: 2, Unit: "sprigs"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "thyme", Qty: "2", QtyVal: 2, Unit: "sprigs"}, Text(" ")}, {Text("and some text")}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestIngredientExplicitUnitsWithSpaces(t *testing.T) {
-	got := ParseRecipeString("", `@chilli{ 3 % items }
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "chilli", Qty: "3", QtyVal: 3, Unit: "items"}}}}
-	assertCanonicalRecipe(t, &got, &want)
-}
-func TestMultiWordIngredient(t *testing.T) {
-	got := ParseRecipeString("", `@hot chilli{3}
-`)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{{Name: "hot chilli", Qty: "3", QtyVal: 3, Unit: ""}}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Ingredient{Name: "hot chilli", Qty: "3", QtyVal: 3, Unit: ""}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Preheat the oven to 200℃/Fan 180°C.")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
 func TestTimerDecimal(t *testing.T) {
@@ -463,15 +451,27 @@ func TestTimerDecimal(t *testing.T) {
 	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "", Qty: "1.5", QtyVal: 1.5, Unit: "minutes"}}, Steps: []Step{{Text("Fry for "), Timer{Name: "", Qty: "1.5", QtyVal: 1.5, Unit: "minutes"}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestBasicDirection(t *testing.T) {
-	got := ParseRecipeString("", `Add a bit of chilli
+func TestTimerFractional(t *testing.T) {
+	got := ParseRecipeString("", `Fry for ~{1/2%hour}
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{}, Steps: []Step{{Text("Add a bit of chilli")}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "", Qty: "0.5", QtyVal: 0.5, Unit: "hour"}}, Steps: []Step{{Text("Fry for "), Timer{Name: "", Qty: "0.5", QtyVal: 0.5, Unit: "hour"}}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
-func TestEquipmentMultipleWords(t *testing.T) {
-	got := ParseRecipeString("", `Fry in #frying pan{}
+func TestTimerInteger(t *testing.T) {
+	got := ParseRecipeString("", `Fry for ~{10%minutes}
 `)
-	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{{Name: "frying pan", Qty: "1", QtyVal: 1, Unit: ""}}, Timers: []Timer{}, Steps: []Step{{Text("Fry in "), Cookware{Name: "frying pan", Qty: "1", QtyVal: 1, Unit: ""}}}}
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "", Qty: "10", QtyVal: 10, Unit: "minutes"}}, Steps: []Step{{Text("Fry for "), Timer{Name: "", Qty: "10", QtyVal: 10, Unit: "minutes"}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestTimerWithName(t *testing.T) {
+	got := ParseRecipeString("", `Fry for ~potato{42%minutes}
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "potato", Qty: "42", QtyVal: 42, Unit: "minutes"}}, Steps: []Step{{Text("Fry for "), Timer{Name: "potato", Qty: "42", QtyVal: 42, Unit: "minutes"}}}}
+	assertCanonicalRecipe(t, &got, &want)
+}
+func TestTimerWithUnicodeWhitespace(t *testing.T) {
+	got := ParseRecipeString("", `Let it ~rest then serve
+`)
+	want := Recipe{Name: "", Metadata: map[string]string{}, Ingredients: []Ingredient{}, Cookware: []Cookware{}, Timers: []Timer{{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}}, Steps: []Step{{Text("Let it "), Timer{Name: "rest", Qty: "", QtyVal: NoQty, Unit: ""}, Text(" then serve")}}}
 	assertCanonicalRecipe(t, &got, &want)
 }
