@@ -129,7 +129,7 @@ func generateTestFile(specPath string, outPath string) error {
 		testNames = append(testNames, k)
 	}
 	sort.Sort(sort.StringSlice(testNames))
-	
+
 	for _, testName := range testNames {
 		testData := spec.Tests[testName]
 		sb.WriteString(generateTestFunc(testName, &testData))
